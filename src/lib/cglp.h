@@ -97,6 +97,7 @@ typedef struct {
   int viewSizeY;
   int soundSeed;
   bool isDarkColor;
+  bool isShowingScore;
 } Options;
 
 typedef struct {
@@ -118,9 +119,21 @@ typedef struct {
   Options options;
   int usesMouse;
   void (*update)(void);
+  char *filename;
 } Game;
 
 /// \cond
+
+/// \cond
+typedef struct {
+  char str[9];
+  Vector pos;
+  float vy;
+  int ticks;
+} ScoreBoard;
+
+#define MAX_SCORE_BOARD_COUNT 16
+/// \endcond
 
 EXTERNC int currentGameIndex;
 EXTERNC void (*onResetGame)(Game *game);
@@ -163,6 +176,16 @@ EXTERNC void disableSound();
 EXTERNC void toggleSound();
 EXTERNC void goToMenu();
 EXTERNC void restartGame(int gameIndex);
+
+EXTERNC void resetColorAndCharacterOptions();
+EXTERNC void saveCurrentColorAndCharacterOptions();
+EXTERNC void loadCurrentColorAndCharacterOptions(); 
+EXTERNC void initRandomSeed();
+EXTERNC void initScoreBoards();
+EXTERNC ScoreBoard scoreBoards[MAX_SCORE_BOARD_COUNT];
+EXTERNC int viewSizeX, viewSizeY;
+EXTERNC char (*characters)[CHARACTER_HEIGHT][CHARACTER_WIDTH + 1];
+EXTERNC int charactersCount;
 
 typedef struct {
   unsigned char r;

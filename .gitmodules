@@ -5,3 +5,7 @@
 [submodule "SDL3"]
 	path = SDL3
 	url = https://github.com/libsdl-org/SDL.git
+[submodule "submodules/crisp-game-lib"]
+	path = submodules/crisp-game-lib
+	url = https://github.com/abagames/crisp-game-lib
+        ignore = dirty

@@ -10,7 +10,7 @@
 #include "cglp.h"
 
 EXTERNC int gameCount;
-EXTERNC void addGame(char *title, char *description,
+EXTERNC void addGame(char *title, char *description, char* filename,
                      char (*characters)[CHARACTER_WIDTH][CHARACTER_HEIGHT + 1],
                      int charactersCount, Options options, int usesMouse,
                      void (*update)(void));

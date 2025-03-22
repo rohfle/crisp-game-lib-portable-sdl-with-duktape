@@ -17,6 +17,7 @@ extern PlaydateAPI *pd;
 #include <string.h>
 
 #include "cglp.h"
+#include "cglp_duk.h"
 #include "machineDependent.h"
 #include "menu.h"
 #include "particle.h"
@@ -73,12 +74,12 @@ static int state;
 static bool hasTitle;
 static bool isShowingScore;
 static bool isBgmEnabled;
-static int viewSizeX, viewSizeY;
+int viewSizeX, viewSizeY;
 
 static char *title;
 static char *description;
-static char (*characters)[CHARACTER_HEIGHT][CHARACTER_WIDTH + 1];
-static int charactersCount;
+char (*characters)[CHARACTER_HEIGHT][CHARACTER_WIDTH + 1];
+int charactersCount;
 static Options options;
 static void (*update)(void);
 void (*onResetGame)(Game *game) = NULL;
@@ -573,18 +574,18 @@ static void clearView() {
 static int savedColor;
 static CharacterOptions savedCharacterOptions;
 
-static void resetColorAndCharacterOptions() {
+void resetColorAndCharacterOptions() {
   color = BLACK;
   characterOptions.isMirrorX = characterOptions.isMirrorY = false;
   characterOptions.rotation = 0;
 }
 
-static void saveCurrentColorAndCharacterOptions() {
+void saveCurrentColorAndCharacterOptions() {
   savedColor = color;
   savedCharacterOptions = characterOptions;
 }
 
-static void loadCurrentColorAndCharacterOptions() {
+void loadCurrentColorAndCharacterOptions() {
   color = savedColor;
   characterOptions = savedCharacterOptions;
 }
@@ -616,17 +617,7 @@ void toggleSound() {
 static int prevScore;
 static int hiScore;
 
-/// \cond
-typedef struct {
-  char str[9];
-  Vector pos;
-  float vy;
-  int ticks;
-} ScoreBoard;
-
-#define MAX_SCORE_BOARD_COUNT 16
-/// \endcond
-static ScoreBoard scoreBoards[MAX_SCORE_BOARD_COUNT];
+ScoreBoard scoreBoards[MAX_SCORE_BOARD_COUNT];
 static int scoreBoardsIndex;
 
 static void initScore(char* gameTitle) 
@@ -640,7 +631,7 @@ static void initScore(char* gameTitle)
     }
 }
 
-static void initScoreBoards() {
+void initScoreBoards() {
   for (int i = 0; i < MAX_SCORE_BOARD_COUNT; i++) {
     scoreBoards[i].ticks = 0;
   }
@@ -1079,8 +1070,10 @@ void gameOver() { initGameOver(); }
 static void resetGame(int gameIndex) {
   currentGameIndex = gameIndex;
   Game game = getGame(gameIndex);
-  if (onResetGame)
+  cleanupJS();
+  if (onResetGame) {
     onResetGame(&game);
+  }
   title = game.title;
   description = game.description;
   characters = game.characters;
@@ -1089,7 +1082,13 @@ static void resetGame(int gameIndex) {
   viewSizeX = options.viewSizeX;
   viewSizeY = options.viewSizeY;
   update = game.update;
+  // load new game from storage if javascript
+  if (isJSGame(game)) {
+    loadJSGameFromFile(game.filename);
+  }
   md_initView(viewSizeX, viewSizeY);
+  // TODO: should this be in the update loop?
+  isShowingScore = options.isShowingScore;
   initColor();
   initCharacter();
   initScore(title);
@@ -1108,6 +1107,11 @@ static void resetGame(int gameIndex) {
     initInGame();
   }
   ticks = 0;
+}
+
+void initRandomSeed() {
+  setRandomSeedWithTime(&gameSeedRandom);
+  setRandomSeed(&gameRandom, nextRandom(&gameSeedRandom));
 }
 
 //! Go to the game selection menu screen.

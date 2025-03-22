@@ -22,5 +22,7 @@ EXTERNC void md_stopTone();
 EXTERNC float md_getAudioTime();
 EXTERNC void md_initView(int w, int h);
 EXTERNC void md_consoleLog(char *msg);
+EXTERNC int md_readJSGame(char* filename, char* buf, int buflen);
+EXTERNC void md_loadJSGames();
 
 #endif

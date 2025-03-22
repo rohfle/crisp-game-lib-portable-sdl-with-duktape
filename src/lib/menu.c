@@ -96,7 +96,7 @@ static void update() {
   }
 }
 
-void addGame(char *title, char *description,
+void addGame(char *title, char *description, char* filename,
              char (*characters)[CHARACTER_WIDTH][CHARACTER_HEIGHT + 1],
              int charactersCount, Options options, int usesMouse, void (*update)(void)) {
   if (gameCount >= MAX_GAME_COUNT) {
@@ -110,6 +110,7 @@ void addGame(char *title, char *description,
   g->options = options;
   g->usesMouse = usesMouse;
   g->update = update;
+  g->filename = filename;
   gameCount++;
 }
 
@@ -117,6 +118,6 @@ Game getGame(int index) { return games[index]; }
 
 void addMenu() {
   Options o = {
-      .viewSizeX = 100, .viewSizeY = 100, .soundSeed = 0, .isDarkColor = false};
-  addGame("", "", NULL, 0, o, false, update);
+      .viewSizeX = 100, .viewSizeY = 100, .soundSeed = 0, .isDarkColor = false, .isShowingScore = false};
+  addGame("", "", NULL, NULL, 0, o, false, update);
 }

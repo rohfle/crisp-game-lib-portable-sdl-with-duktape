@@ -10,6 +10,7 @@
 #include "cglpSDL2.h"
 #include <math.h>
 #include "CInput.h"
+#include "CLoadGames.h"
 
 #ifdef USE_UINT64_TIMER
     typedef Uint64 TimerType;

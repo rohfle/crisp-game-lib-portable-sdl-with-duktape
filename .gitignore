@@ -13,3 +13,8 @@ obj
 cglpsdl1.exe
 cglpsdl2.exe
 js
+working/
+cglpsdl1
+cglpsdl2
+*_test
+NOTES.txt

@@ -21,7 +21,7 @@ OBJS+=$(addprefix $(OBJ_DIR)/, $(GME_DIR_SRC:.c=.o))
 
 INCS = -I$(SRC_DIR) -I$(LIB_DIR) -I$(GME_DIR)
 SDL_CONFIG = sdl2-config
-CC = gcc
+CC = gcc -g
 CFLAGS ?= -Wall -Wextra `$(SDL_CONFIG) --cflags`
 LDFLAGS ?=
 LDLIBS ?=
