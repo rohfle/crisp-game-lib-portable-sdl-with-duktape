@@ -582,7 +582,6 @@ static void resetColorAndCharacterOptions() {
 static void saveCurrentColorAndCharacterOptions() {
   savedColor = color;
   savedCharacterOptions = characterOptions;
-  resetColorAndCharacterOptions();
 }
 
 static void loadCurrentColorAndCharacterOptions() {
@@ -650,6 +649,7 @@ static void initScoreBoards() {
 
 static void updateScoreBoards() {
   saveCurrentColorAndCharacterOptions();
+  resetColorAndCharacterOptions();
   for (int i = 0; i < MAX_SCORE_BOARD_COUNT; i++) {
     ScoreBoard *sb = &scoreBoards[i];
     if (sb->ticks > 0) {
@@ -694,6 +694,7 @@ static void drawScore() {
     return;
   }
   saveCurrentColorAndCharacterOptions();
+  resetColorAndCharacterOptions();
   color = BLACK;
   char sc[16];
   int s = state == STATE_IN_GAME ? (int)score : prevScore;
@@ -990,6 +991,7 @@ static void updateTitle() {
     }
   }
   saveCurrentColorAndCharacterOptions();
+  resetColorAndCharacterOptions();
   drawCharacters(title, (viewSizeX - strlen(title) * CHARACTER_WIDTH) / 2,
                  viewSizeY * 0.25f, false, true);
   if (ticks > 30) {
@@ -1049,6 +1051,7 @@ static void initGameOver() {
 
   gameOverTicks = 0;
   saveCurrentColorAndCharacterOptions();
+  resetColorAndCharacterOptions();
   drawGameOver();
   loadCurrentColorAndCharacterOptions();
 }
