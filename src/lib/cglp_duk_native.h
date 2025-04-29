@@ -47,31 +47,31 @@ bool parse_color(duk_context* ctx, duk_idx_t idx, int* color);
 bool parse_rect(duk_context* ctx, duk_float_t* x, duk_float_t* y, duk_float_t* w,  duk_float_t* h);
 bool parse_line(duk_context* ctx, duk_float_t* x1, duk_float_t* y1, duk_float_t* x2,  duk_float_t* y2, duk_float_t* thickness);
 bool parse_arc(
-    duk_context* ctx, 
-    duk_float_t* centerX, 
-    duk_float_t* centerY, 
-    duk_float_t* radius,  
-    duk_float_t* thickness, 
+    duk_context* ctx,
+    duk_float_t* centerX,
+    duk_float_t* centerY,
+    duk_float_t* radius,
+    duk_float_t* thickness,
     duk_float_t* angleFrom,
     duk_float_t* angleTo
 );
 
 bool parse_bar(
-    duk_context* ctx, 
-    duk_float_t* x, 
-    duk_float_t* y, 
-    duk_float_t* length,  
-    duk_float_t* thickness, 
+    duk_context* ctx,
+    duk_float_t* x,
+    duk_float_t* y,
+    duk_float_t* length,
+    duk_float_t* thickness,
     duk_float_t* angle,
     duk_float_t* barCenterPosRatio
 );
 
 bool parse_particle(
-    duk_context* ctx, 
-    duk_float_t* x, 
-    duk_float_t* y, 
-    duk_float_t* count,  
-    duk_float_t* speed, 
+    duk_context* ctx,
+    duk_float_t* x,
+    duk_float_t* y,
+    duk_float_t* count,
+    duk_float_t* speed,
     duk_float_t* angle,
     duk_float_t* angleWidth
 );
