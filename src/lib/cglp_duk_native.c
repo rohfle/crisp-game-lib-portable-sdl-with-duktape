@@ -695,49 +695,6 @@ bool parse_line(duk_context* ctx, duk_float_t* x1, duk_float_t* y1, duk_float_t*
         valid &= parse_vectorlike(ctx, 1, x2, y2);
     }
 
-// export function line(
-//     x1: number | VectorLike,
-//     y1: number | VectorLike,
-//     x2: number | VectorLike = 3,
-//     y2: number = 3,
-//     thickness: number = 3
-//   ) {
-//     const p = new Vector();
-//     const p2 = new Vector();
-//     if (typeof x1 === "number") {
-//       if (typeof y1 === "number") {
-//         if (typeof x2 === "number") {
-//           p.set(x1, y1);
-//           p2.set(x2, y2);
-//         } else {
-//           p.set(x1, y1);
-//           p2.set(x2);
-//           thickness = y2;
-//         }
-//       } else {
-//         throw "invalid params";
-//       }
-//     } else {
-//       if (typeof y1 === "number") {
-//         if (typeof x2 === "number") {
-//           p.set(x1);
-//           p2.set(y1, x2);
-//           thickness = y2;
-//         } else {
-//           throw "invalid params";
-//         }
-//       } else {
-//         if (typeof x2 === "number") {
-//           p.set(x1);
-//           p2.set(y1);
-//           thickness = x2;
-//         } else {
-//           throw "invalid params";
-//         }
-//       }
-//     }
-//     return drawLine(p, p2.sub(p), thickness);
-//   }
     return valid;
 }
 
