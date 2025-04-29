@@ -47,7 +47,7 @@ static void update() {
     }
   }
 
-  
+
   // Calculate current page and starting index
   int currentGames = 0;
   int page = 0;
@@ -67,15 +67,15 @@ static void update() {
   for (int i = 0; i < currentGames; i++) {
       int gamePos = startIndex + i;
       if (gamePos >= gameCount) break;
-      
+
       float y = (i + 1) * 6; // Always offset by one line
-      
+
       // Draw selection cursor
       if (gamePos == gameIndex) {
           color = BLUE;
           text(">", 3, y + 3);
       }
-    
+
       // Offset normal games vs category
       // i assume games without update function are category
       int offset = 0;

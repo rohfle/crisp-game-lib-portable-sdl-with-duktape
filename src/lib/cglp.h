@@ -179,7 +179,7 @@ EXTERNC void restartGame(int gameIndex);
 
 EXTERNC void resetColorAndCharacterOptions();
 EXTERNC void saveCurrentColorAndCharacterOptions();
-EXTERNC void loadCurrentColorAndCharacterOptions(); 
+EXTERNC void loadCurrentColorAndCharacterOptions();
 EXTERNC void initRandomSeed();
 EXTERNC void initScoreBoards();
 EXTERNC ScoreBoard scoreBoards[MAX_SCORE_BOARD_COUNT];

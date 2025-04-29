@@ -97,11 +97,11 @@ int duk_push_input(duk_context* ctx, Input input) {
     DEBUG_TRACE(duk_push_input);
     duk_idx_t input_obj_idx = duk_push_object(ctx);
     duk_push_boolean(ctx, input.isPressed);
-    duk_put_prop_string(ctx, input_obj_idx, "isPressed");  
+    duk_put_prop_string(ctx, input_obj_idx, "isPressed");
     duk_push_boolean(ctx, input.isJustPressed);
-    duk_put_prop_string(ctx, input_obj_idx, "isJustPressed"); 
+    duk_put_prop_string(ctx, input_obj_idx, "isJustPressed");
     duk_push_boolean(ctx, input.isJustReleased);
-    duk_put_prop_string(ctx, input_obj_idx, "isJustReleased"); 
+    duk_put_prop_string(ctx, input_obj_idx, "isJustReleased");
     duk_push_vector(ctx, input.pos);
     duk_put_prop_string(ctx, input_obj_idx, "pos");
     return 1;
@@ -128,7 +128,7 @@ int duk_push_collision(duk_context *ctx, Collision collision) {
     for (i = 0; i < COLOR_COUNT; i++) {
         if (collision.isColliding.rect[i]) {
            duk_push_boolean(ctx, true);
-           duk_put_prop_string(ctx, rect_obj_idx, colorsAsStrings[i]);  
+           duk_put_prop_string(ctx, rect_obj_idx, colorsAsStrings[i]);
         }
     }
     for (i = '!'; i <= '~'; i++) {
@@ -136,7 +136,7 @@ int duk_push_collision(duk_context *ctx, Collision collision) {
             charString[0] = i;
             charString[1] = '\0';
            duk_push_boolean(ctx, true);
-           duk_put_prop_string(ctx, text_obj_idx, charString);  
+           duk_put_prop_string(ctx, text_obj_idx, charString);
         }
     }
     for (i = 'a'; i <= 'z'; i++) {
@@ -144,14 +144,14 @@ int duk_push_collision(duk_context *ctx, Collision collision) {
             charString[0] = i;
             charString[1] = '\0';
            duk_push_boolean(ctx, true);
-           duk_put_prop_string(ctx, char_obj_idx, charString);  
+           duk_put_prop_string(ctx, char_obj_idx, charString);
         }
     }
 
-    duk_put_prop_string(ctx, isColliding_obj_idx, "char"); 
-    duk_put_prop_string(ctx, isColliding_obj_idx, "text"); 
-    duk_put_prop_string(ctx, isColliding_obj_idx, "rect"); 
-    duk_put_prop_string(ctx, collision_obj_idx, "isColliding"); 
+    duk_put_prop_string(ctx, isColliding_obj_idx, "char");
+    duk_put_prop_string(ctx, isColliding_obj_idx, "text");
+    duk_put_prop_string(ctx, isColliding_obj_idx, "rect");
+    duk_put_prop_string(ctx, collision_obj_idx, "isColliding");
     return 1;
 }
 
@@ -162,7 +162,7 @@ void duk_get_letteroptions(duk_context* ctx, duk_idx_t idx, int* color, Characte
        parse_color(ctx, -1, color);
        duk_pop(ctx);
     }
-    
+
     if (duk_has_prop_string(ctx, idx, "mirror")) {
        duk_get_prop_string(ctx, idx, "mirror");
        duk_idx_t mirrorIdx = duk_normalize_index(ctx, -1);
@@ -178,12 +178,12 @@ void duk_get_letteroptions(duk_context* ctx, duk_idx_t idx, int* color, Characte
         }
        duk_pop(ctx);
     }
-    
+
     if (duk_has_prop_string(ctx, idx, "rotation")) {
        duk_get_prop_string(ctx, idx, "rotation");
         characterOptions->rotation = duk_get_int(ctx, -1);
        duk_pop(ctx);
-    }    
+    }
 }
 
 duk_ret_t native_rnd(duk_context* ctx) {
@@ -199,8 +199,8 @@ duk_ret_t native_rnd(duk_context* ctx) {
     }
     duk_float_t result = rnd(low, high);
 	duk_push_number(ctx, result);
-	return 1;  /* one return value */  
-} 
+	return 1;  /* one return value */
+}
 
 duk_ret_t native_rndi(duk_context* ctx) {
     DEBUG_TRACE(native_rndi);
@@ -214,8 +214,8 @@ duk_ret_t native_rndi(duk_context* ctx) {
         high = duk_to_int(ctx, 1);
     }
 	duk_push_int(ctx, rndi(low, high));
-	return 1;  /* one return value */  
-} 
+	return 1;  /* one return value */
+}
 
 duk_ret_t native_rnds(duk_context* ctx) {
     DEBUG_TRACE(native_rnds);
@@ -231,8 +231,8 @@ duk_ret_t native_rnds(duk_context* ctx) {
     duk_float_t result = rnd(low, high);
     duk_int_t sign = rndi(0, 2) * 2 - 1;
 	duk_push_number(ctx, result * (float)sign);
-	return 1;  /* one return value */  
-} 
+	return 1;  /* one return value */
+}
 
 bool parse_color(duk_context* ctx, duk_idx_t idx, int* color) {
     if (duk_is_number(ctx, idx)) {
@@ -248,7 +248,7 @@ bool parse_color(duk_context* ctx, duk_idx_t idx, int* color) {
             if (strncmp(colorStr, colorsAsStrings[i], 10) == 0) {
                 *color = i;
                 return true;
-            }            
+            }
         }
     }
     return false;
@@ -258,7 +258,7 @@ duk_ret_t native_color(duk_context* ctx) {
     DEBUG_TRACE(native_color);
     parse_color(ctx, 0, &color);
     return 0;
-} 
+}
 
 duk_ret_t native_range(duk_context* ctx) {
     DEBUG_TRACE(native_range);
@@ -267,7 +267,7 @@ duk_ret_t native_range(duk_context* ctx) {
 
     for (int idx = 0; idx < count; idx++) {
        duk_push_int(ctx, idx);
-       duk_put_prop_index(ctx, arr_idx, idx);  
+       duk_put_prop_index(ctx, arr_idx, idx);
     }
     return 1;
 }
@@ -317,8 +317,8 @@ duk_ret_t native_addScore(duk_context* ctx) {
     // push score to duktape afterwards
     duk_push_number(ctx, score);
     duk_put_global_string(ctx, "score");
-	return 0;  /* no return value */     
-} 
+	return 0;  /* no return value */
+}
 
 duk_ret_t native_addWithCharCode(duk_context* ctx) {
     // DEBUG_TRACE(native_addWithCharCode);
@@ -340,7 +340,7 @@ duk_ret_t native_end(duk_context* ctx) {
     }
     gameOver();
     return 0;
-} 
+}
 
 duk_ret_t native_play(duk_context* ctx) {
     DEBUG_TRACE(native_play);
@@ -355,11 +355,11 @@ duk_ret_t native_play(duk_context* ctx) {
             if (strncmp(soundStr, soundsAsStrings[i], 10) == 0) {
                 play(i);
                 return 0;
-            }            
+            }
         }
     }
     return 0;
-} 
+}
 
 duk_ret_t native_remove(duk_context* ctx) {
     DEBUG_TRACE(native_remove);
@@ -374,9 +374,9 @@ duk_ret_t native_remove(duk_context* ctx) {
        duk_call(ctx, 2);
         if (duk_get_boolean(ctx, -1)) {
            duk_get_prop_index(ctx, array_idx, i);
-           duk_put_prop_index(ctx, removed_idx, removed_len);  
+           duk_put_prop_index(ctx, removed_idx, removed_len);
             removed_len += 1;
-           duk_push_string(ctx, "splice"); 
+           duk_push_string(ctx, "splice");
            duk_push_int(ctx, i);
            duk_push_int(ctx, 1);
            duk_call_prop(ctx, array_idx, 2);
@@ -396,7 +396,7 @@ duk_ret_t native_times(duk_context* ctx) {
     DEBUG_TRACE(native_times);
     duk_idx_t results_idx = duk_push_array(ctx);
     int results_len = 0;
-    
+
     const duk_int_t count = duk_get_int(ctx, 0);
     const duk_idx_t func_idx = 1;
     for (int idx = 0; idx < count; idx++) {
@@ -404,7 +404,7 @@ duk_ret_t native_times(duk_context* ctx) {
        duk_dup(ctx, func_idx);
        duk_push_int(ctx, idx);
        duk_call(ctx, 1);
-       duk_put_prop_index(ctx, results_idx, results_len);  
+       duk_put_prop_index(ctx, results_idx, results_len);
         results_len += 1;
     }
     duk_push_number(ctx, results_len);
@@ -417,13 +417,13 @@ duk_ret_t native_rect(duk_context* ctx) {
     duk_float_t x, y, w, h;
     Collision collision;
     bool valid = parse_rect(ctx, &x, &y, &w, &h);
-    
+
     if (valid) {
         collision = rect(x, y, w, h);
     }
     duk_push_collision(ctx, collision);
     return 1;
-} 
+}
 
 duk_ret_t native_box(duk_context* ctx) {
     DEBUG_TRACE(native_box);
@@ -436,7 +436,7 @@ duk_ret_t native_box(duk_context* ctx) {
     }
     duk_push_collision(ctx, collision);
     return 1;
-} 
+}
 
 duk_ret_t native_bar(duk_context* ctx) {
     DEBUG_TRACE(native_bar);
@@ -451,7 +451,7 @@ duk_ret_t native_bar(duk_context* ctx) {
     barCenterPosRatio = 0.5f; // reset barCenterPosRatio
     duk_push_collision(ctx, collision);
     return 1;
-} 
+}
 
 duk_ret_t native_line(duk_context* ctx) {
     DEBUG_TRACE(native_line);
@@ -465,8 +465,8 @@ duk_ret_t native_line(duk_context* ctx) {
     duk_push_collision(ctx, collision);
     thickness = 3; // reset thickness
     return 1;
-    
-} 
+
+}
 
 duk_ret_t native_char(duk_context* ctx) {
     DEBUG_TRACE(native_char);
@@ -498,7 +498,7 @@ duk_ret_t native_char(duk_context* ctx) {
     }
     duk_push_collision(ctx, collision);
     return 1;
-} 
+}
 
 duk_ret_t native_isVectorLike(duk_context* ctx) {
     DEBUG_TRACE(native_isVectorLike);
@@ -521,7 +521,7 @@ duk_ret_t native_arc(duk_context* ctx) {
     thickness = 3; // reset thickness
     duk_push_collision(ctx, collision);
     return 1;
-} 
+}
 
 duk_ret_t native_particle(duk_context* ctx) {
     DEBUG_TRACE(native_particle);
@@ -531,14 +531,14 @@ duk_ret_t native_particle(duk_context* ctx) {
         particle(x, y, count, speed, angle, angleWidth);
     }
     return 0;
-} 
+}
 
 duk_ret_t native_text(duk_context* ctx) {
     DEBUG_TRACE(native_text);
     duk_idx_t n = duk_get_top(ctx);  /* #args */
     duk_float_t x;
     duk_float_t y;
-    
+
     const char* msg = duk_to_string(ctx, 0);
     duk_idx_t extra_idx;
     if (duk_is_number(ctx, 1)) {
@@ -564,7 +564,7 @@ duk_ret_t native_text(duk_context* ctx) {
     }
     duk_push_collision(ctx, collision);
     return 1;
-} 
+}
 
 duk_idx_t parse_clamp(duk_context* ctx, duk_idx_t idx, duk_idx_t stack_length, duk_float_t* low, duk_float_t* high) {
     DEBUG_TRACE(parse_clamp);
@@ -606,8 +606,8 @@ bool parse_rect(duk_context* ctx, duk_float_t* x, duk_float_t* y, duk_float_t* w
             if (duk_is_number(ctx, 2)) {
                 // 3: x, y, w, w
                 *w = duk_get_number(ctx, 2);
-                *h = *w;      
-                valid = true;          
+                *h = *w;
+                valid = true;
             } else {
                 // 3: x, y, w.x, w.y
                 valid = parse_vectorlike(ctx, 2, w, h);
@@ -654,21 +654,21 @@ bool parse_line(duk_context* ctx, duk_float_t* x1, duk_float_t* y1, duk_float_t*
                 *x1 = duk_get_number(ctx, 0);
                 *y1 = duk_get_number(ctx, 1);
                 *x2 = duk_get_number(ctx, 2);
-                *y2 = duk_get_number(ctx, 3);      
-                valid = true;     
+                *y2 = duk_get_number(ctx, 3);
+                valid = true;
             } else {
                 // 4: x1, y1, x2.x, x2.y, thickness=y2
                 *x1 = duk_get_number(ctx, 0);
                 *y1 = duk_get_number(ctx, 1);
                 valid = parse_vectorlike(ctx, 2, x2, y2);
-                *thickness = duk_get_number(ctx, 3);         
+                *thickness = duk_get_number(ctx, 3);
             }
         } else {
             // 4: x1.x, x1.y, y1, x2, thickness=y2
             valid = parse_vectorlike(ctx, 0, x1, y1);
             *x1 = duk_get_number(ctx, 1);
             *y1 = duk_get_number(ctx, 2);
-            *thickness = duk_get_number(ctx, 3); 
+            *thickness = duk_get_number(ctx, 3);
         }
     } else if (n == 3) {
         if (duk_is_number(ctx, 0)) {
@@ -681,7 +681,7 @@ bool parse_line(duk_context* ctx, duk_float_t* x1, duk_float_t* y1, duk_float_t*
                 // 3: x1.x, x1.y, y1, x2
                 valid = parse_vectorlike(ctx, 0, x1, y1);
                 *x2 = duk_get_number(ctx, 1);
-                *y2 = duk_get_number(ctx, 2); 
+                *y2 = duk_get_number(ctx, 2);
             } else {
                 // 3: x1.x, x1.y, y1.x, y1.y, thickness=x2
                 valid = parse_vectorlike(ctx, 0, x1, y1);
@@ -699,11 +699,11 @@ bool parse_line(duk_context* ctx, duk_float_t* x1, duk_float_t* y1, duk_float_t*
 }
 
 bool parse_arc(
-    duk_context* ctx, 
-    duk_float_t* centerX, 
-    duk_float_t* centerY, 
-    duk_float_t* radius,  
-    duk_float_t* thickness, 
+    duk_context* ctx,
+    duk_float_t* centerX,
+    duk_float_t* centerY,
+    duk_float_t* radius,
+    duk_float_t* thickness,
     duk_float_t* angleFrom,
     duk_float_t* angleTo
 ) {
@@ -741,16 +741,16 @@ bool parse_arc(
     if (extra_idx < n && !duk_is_null_or_undefined(ctx, extra_idx)) {
         *angleTo = duk_get_number(ctx, extra_idx);
     }
-    // TODO: catch some bad calls 
+    // TODO: catch some bad calls
     return true;
 }
 
 bool parse_bar(
-    duk_context* ctx, 
-    duk_float_t* x, 
-    duk_float_t* y, 
-    duk_float_t* length,  
-    duk_float_t* thickness, 
+    duk_context* ctx,
+    duk_float_t* x,
+    duk_float_t* y,
+    duk_float_t* length,
+    duk_float_t* thickness,
     duk_float_t* angle,
     duk_float_t* barCenterPosRatio
 ) {
@@ -786,16 +786,16 @@ bool parse_bar(
         *barCenterPosRatio = duk_get_number(ctx, extra_idx);
     }
 
-    // TODO: catch some bad calls 
+    // TODO: catch some bad calls
     return true;
 }
 
 bool parse_particle(
-    duk_context* ctx, 
-    duk_float_t* x, 
-    duk_float_t* y, 
-    duk_float_t* count,  
-    duk_float_t* speed, 
+    duk_context* ctx,
+    duk_float_t* x,
+    duk_float_t* y,
+    duk_float_t* count,
+    duk_float_t* speed,
     duk_float_t* angle,
     duk_float_t* angleWidth
 ) {
@@ -872,7 +872,7 @@ bool parse_particle(
         }
     }
 
-    // TODO: catch some bad calls 
+    // TODO: catch some bad calls
     return true;
 }
 
@@ -936,7 +936,7 @@ bool find_character_bounds(const char* str, int strlen, int* start, int* finish,
         if (str[cidx] == '\n') {
             *start = cidx + 1;
             break;
-        } 
+        }
     }
 
     if (cidx >= strlen || *start >= strlen) {
@@ -947,7 +947,7 @@ bool find_character_bounds(const char* str, int strlen, int* start, int* finish,
         if (str[cidx] == '\n') {
             *finish = cidx - 1;
             break;
-        } 
+        }
     }
 
     int w = 0;
@@ -978,7 +978,7 @@ int duk_get_characters_persistent(duk_context* ctx, duk_idx_t idx, char(**charac
     for (int charidx = 0; charidx < charactersLength; charidx++) {
         // add null termination
         for (int y = 0; y < CHARACTER_WIDTH; y++) {
-            (*characters)[charidx][y][CHARACTER_HEIGHT] = '\0'; 
+            (*characters)[charidx][y][CHARACTER_HEIGHT] = '\0';
         }
 
         duk_get_prop_index(ctx, arr_idx, charidx);
@@ -1057,7 +1057,7 @@ void duk_get_options_persistent(duk_context* ctx, duk_idx_t idx, Options** optio
             duk_get_prop_string(ctx, view_idx, "y");
             o->viewSizeY = duk_get_int(ctx, -1);
             duk_pop(ctx);
-        }      
+        }
     }
     if (duk_has_prop_string(ctx, idx, "theme")) {
         duk_get_prop_string(ctx, idx, "theme");

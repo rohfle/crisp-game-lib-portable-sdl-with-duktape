@@ -161,7 +161,7 @@ static void addRect(bool isAlignCenter, float x, float y, float w, float h,
   if (h < 0) {
     y += h;
     h = -h;
-  }  
+  }
   if (hasCollision) {
     HitBox hb;
     hb.rectIndex = color;
@@ -211,7 +211,7 @@ static void addHitBox(HitBox hb) {
   if (hitBoxesIndex < MAX_HIT_BOX_COUNT) {
     hitBoxes[hitBoxesIndex] = hb;
     hitBoxesIndex++;
-#ifdef DEBUG    
+#ifdef DEBUG
     if(hitBoxesIndex > maxHitBoxes)
     {
       maxHitBoxes = hitBoxesIndex;
@@ -620,8 +620,8 @@ static int hiScore;
 ScoreBoard scoreBoards[MAX_SCORE_BOARD_COUNT];
 static int scoreBoardsIndex;
 
-static void initScore(char* gameTitle) 
-{ 
+static void initScore(char* gameTitle)
+{
   score = prevScore = hiScore = 0;
   for (int i = 0; i < gameCount; i++)
     if(strcmp(hiScores[i].title, gameTitle) == 0)
@@ -755,8 +755,8 @@ void setButtonState(bool left, bool right, bool up, bool down, bool b, bool a) {
   }
 }
 
-void setMousePos(float x, float y) 
-{ 
+void setMousePos(float x, float y)
+{
   currentInput.pos.x = x;
   currentInput.pos.y = y;
 }
@@ -1037,7 +1037,7 @@ static void initGameOver() {
         strncpy(hiScores[index].title, title, strlen(title));
         hiScores[index].hiScore = prevScore;
       }
-    } 
+    }
   }
 
   gameOverTicks = 0;
@@ -1051,7 +1051,7 @@ static void updateGameOver() {
   isInGameOver = true;
   if (gameOverTicks == 20) {
     // saveCurrentColorAndCharacterOptions();
-    // drawGameOver();    
+    // drawGameOver();
     // loadCurrentColorAndCharacterOptions();
   }
   if (gameOverTicks > 20 && currentInput.isJustPressed) {

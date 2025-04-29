@@ -74,7 +74,7 @@ int md_readJSGame(char* filename, char* buf, int buflen) {
     }
     if (!feof(f)) {
         consoleLog("fread: Game is too big: over %d bytes %s\n", buflen, filename);
-        return -1;       
+        return -1;
     }
     buf[len] = '\0'; // ensure null termination
     fclose(f);

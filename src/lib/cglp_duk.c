@@ -9,7 +9,7 @@
 
 #define MAX_FILE_SIZE 32768
 
-const char* CGLP_DUK_SHIM = 
+const char* CGLP_DUK_SHIM =
     "abs = Math.abs;\n"
     "atan2 = Math.atan2;\n"
     "ceil = Math.ceil;\n"

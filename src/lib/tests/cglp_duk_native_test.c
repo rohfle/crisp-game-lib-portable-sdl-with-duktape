@@ -51,14 +51,14 @@ void duk_debug_print(duk_context* ctx, char* key) {
 int test_duk_get_characters_persistent(char* function_name) {
     int result = FAIL;
 
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "characters = [\n"
         "    \"\\n l\\nlll\\nl l\\n\", \n"
         "    \"\\nllllll\\nll l l\\nll l l\\nllllll\\n l  l\\n l  l\\n  \", \n"
         "    \"\\nllllll\\nll l l\\nll l l\\nllllll\\nll  ll\\n  \"\n"
-        "];\n"     
+        "];\n"
     );
-    
+
     char (*characters)[CHARACTER_WIDTH][CHARACTER_HEIGHT + 1];
     duk_get_global_string(ctx, "characters");
     int charactersLength = duk_get_characters_persistent(ctx, -1, &characters);
@@ -96,8 +96,8 @@ int test_duk_get_characters_persistent(char* function_name) {
     int expectedCharactersLength = 3;
 
     int cmpresult = memcmp(
-        characters, 
-        expectedCharacters, 
+        characters,
+        expectedCharacters,
         expectedCharactersLength * CHARACTER_WIDTH * (CHARACTER_HEIGHT + 1) * sizeof(char)
     );
 
@@ -234,9 +234,9 @@ int test_duk_push_collision(char* function_name) {
 int test_native_rnd(char* function_name) {
     int result = FAIL;
     duk_float_t returned, returned2;
-    
+
     initRandomSeed();
-    
+
     duk_get_global_string(ctx, "rnd");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'rnd' is undefined");
@@ -247,13 +247,13 @@ int test_native_rnd(char* function_name) {
         TESTLOG("'rnd' is not a function");
         goto cleanup;
     }
-    
+
     duk_call(ctx, 0);
     returned = duk_get_number(ctx, -1);
     duk_pop(ctx);
     if (returned > 1.0 || returned < 0.0) {
         TESTLOG("returned value %0.2f from 'rnd()' is outside of expected range", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     duk_get_global_string(ctx, "rnd");
@@ -263,12 +263,12 @@ int test_native_rnd(char* function_name) {
     duk_pop(ctx);
     if (returned2 > 100.0 || returned2 < 0.0) {
         TESTLOG("returned value %0.2f from 'rnd(100)' is outside of expected range", returned2);
-        goto cleanup;      
+        goto cleanup;
     }
 
     if (returned2 == returned) {
         TESTLOG("random returned same number sequentially");
-        goto cleanup;        
+        goto cleanup;
     }
 
 
@@ -280,7 +280,7 @@ int test_native_rnd(char* function_name) {
     duk_pop(ctx);
     if (returned > 200.0 || returned < 100.0) {
         TESTLOG("returned value %0.2f from 'rnd(100, 200)' is outside of expected range", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -292,9 +292,9 @@ int test_native_rnd(char* function_name) {
 int test_native_rndi(char* function_name) {
     int result = FAIL;
     duk_int_t returned, returned2;
-    
+
     initRandomSeed();
-    
+
     duk_get_global_string(ctx, "rndi");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'rndi' is undefined");
@@ -305,13 +305,13 @@ int test_native_rndi(char* function_name) {
         TESTLOG("'rndi' is not a function");
         goto cleanup;
     }
-    
+
     duk_call(ctx, 0);
     returned = duk_get_int(ctx, -1);
     duk_pop(ctx);
     if (returned > 2 || returned < 0) {
         TESTLOG("returned value %d from 'rndi()' is outside of expected range", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     duk_get_global_string(ctx, "rndi");
@@ -321,12 +321,12 @@ int test_native_rndi(char* function_name) {
     duk_pop(ctx);
     if (returned2 > 1000000 || returned2 < 0) {
         TESTLOG("returned value %d from 'rndi(1000000)' is outside of expected range", returned2);
-        goto cleanup;      
+        goto cleanup;
     }
 
     if (returned2 == returned) {
         TESTLOG("random returned same number sequentially: %d", returned);
-        goto cleanup;        
+        goto cleanup;
     }
 
     duk_get_global_string(ctx, "rndi");
@@ -337,7 +337,7 @@ int test_native_rndi(char* function_name) {
     duk_pop(ctx);
     if (returned > 2000000 || returned < 1000000) {
         TESTLOG("returned value %d from 'rndi(1000000, 2000000)' is outside of expected range", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -349,9 +349,9 @@ int test_native_rndi(char* function_name) {
 int test_native_rnds(char* function_name) {
     int result = FAIL;
     duk_float_t returned, returned2;
-    
+
     initRandomSeed();
-    
+
     duk_get_global_string(ctx, "rnds");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'rnds' is undefined");
@@ -362,13 +362,13 @@ int test_native_rnds(char* function_name) {
         TESTLOG("'rnds' is not a function");
         goto cleanup;
     }
-    
+
     duk_call(ctx, 0);
     returned = duk_get_number(ctx, -1);
     duk_pop(ctx);
     if (returned > 1.0 || returned < -1.0) {
         TESTLOG("returned value %0.2f from 'rnds()' is outside of expected range", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     duk_get_global_string(ctx, "rnds");
@@ -378,12 +378,12 @@ int test_native_rnds(char* function_name) {
     duk_pop(ctx);
     if (returned2 > 100.0 || returned2 < -100.0) {
         TESTLOG("returned value %0.2f from 'rnds(100)' is outside of expected range", returned2);
-        goto cleanup;      
+        goto cleanup;
     }
 
     if (returned2 == returned) {
         TESTLOG("random returned same number sequentially");
-        goto cleanup;        
+        goto cleanup;
     }
 
     duk_get_global_string(ctx, "rnds");
@@ -394,7 +394,7 @@ int test_native_rnds(char* function_name) {
     duk_pop(ctx);
     if (abs(returned) > 200.0 || abs(returned) < 100.0) {
         TESTLOG("returned value %0.2f from 'rnds(100, 200)' is outside of expected range", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -405,7 +405,7 @@ int test_native_rnds(char* function_name) {
 
 int test_native_color(char* function_name) {
     int result = FAIL;
-    
+
     duk_get_global_string(ctx, "color");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'color' is undefined");
@@ -464,7 +464,7 @@ cleanup:
 
 int test_native_range(char* function_name) {
     int result = FAIL;
-    
+
     duk_get_global_string(ctx, "range");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'range' is undefined");
@@ -505,7 +505,7 @@ cleanup:
 int test_native_clamp(char* function_name) {
     int result = FAIL;
     duk_float_t returned, returned2;
-    
+
     duk_get_global_string(ctx, "clamp");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'clamp' is undefined");
@@ -516,14 +516,14 @@ int test_native_clamp(char* function_name) {
         TESTLOG("'clamp' is not a function");
         goto cleanup;
     }
-    
+
     duk_push_number(ctx, 100);
     duk_call(ctx, 1);
     returned = duk_get_number(ctx, -1);
     duk_pop(ctx);
     if (returned != 1.0) {
         TESTLOG("returned value %0.2f from 'clamp(100)' is not clamped to 1.0", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     duk_get_global_string(ctx, "clamp");
@@ -535,7 +535,7 @@ int test_native_clamp(char* function_name) {
     duk_pop(ctx);
     if (returned != 100.0) {
         TESTLOG("returned value %0.2f from 'clamp(100, 50, 200)' should not be changed", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     duk_get_global_string(ctx, "clamp");
@@ -547,7 +547,7 @@ int test_native_clamp(char* function_name) {
     duk_pop(ctx);
     if (returned != 50.0) {
         TESTLOG("returned value %0.2f from 'clamp(-100, 50, 200)' is not clamped to 50.0", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -559,7 +559,7 @@ int test_native_clamp(char* function_name) {
 int test_native_wrap(char* function_name) {
     int result = FAIL;
     duk_float_t returned;
-    
+
     duk_get_global_string(ctx, "wrap");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'wrap' is undefined");
@@ -579,7 +579,7 @@ int test_native_wrap(char* function_name) {
     duk_pop(ctx);
     if (returned != 100.0) {
         TESTLOG("returned value %0.2f from 'wrap(100, 50, 200)' should not be changed", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     duk_get_global_string(ctx, "wrap");
@@ -591,7 +591,7 @@ int test_native_wrap(char* function_name) {
     duk_pop(ctx);
     if (returned != 190.0) {
         TESTLOG("returned value %0.2f from 'wrap(-110, 50, 200)' is not wrapped to 190.0", returned);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -602,7 +602,7 @@ int test_native_wrap(char* function_name) {
 
 int test_native_addScore(char* function_name) {
     int result = FAIL;
-    
+
     duk_get_global_string(ctx, "addScore");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'addScore' is undefined");
@@ -613,7 +613,7 @@ int test_native_addScore(char* function_name) {
         TESTLOG("'addScore' is not a function");
         goto cleanup;
     }
-    
+
     score = 0;
     // this would usually be set before calling update
     duk_push_number(ctx, score);
@@ -623,7 +623,7 @@ int test_native_addScore(char* function_name) {
     duk_pop(ctx);
     if (score != 100) {
         TESTLOG("addScore(100) does not add 100 to score");
-        goto cleanup;      
+        goto cleanup;
     }
 
     initScoreBoards();
@@ -640,15 +640,15 @@ int test_native_addScore(char* function_name) {
     duk_pop(ctx);
     if (score != 200) {
         TESTLOG("addScore(100, 80, 60) when score is 100 does not equal 200");
-        goto cleanup;      
+        goto cleanup;
     }
     if (scoreBoards[0].pos.x == 0) {
         TESTLOG("addScore(100, 80, 60) does not set x in scoreBoards");
-        goto cleanup;      
+        goto cleanup;
     }
     if (scoreBoards[0].pos.y == 0) {
         TESTLOG("addScore(100, 80, 60) does not set y in scoreBoards");
-        goto cleanup;      
+        goto cleanup;
     }
 
     initScoreBoards();
@@ -661,22 +661,22 @@ int test_native_addScore(char* function_name) {
     duk_push_number(ctx, 100);
     duk_idx_t obj_idx = duk_push_object(ctx);
     duk_push_number(ctx, 80);
-    duk_put_prop_string(ctx, obj_idx, "x"); 
+    duk_put_prop_string(ctx, obj_idx, "x");
     duk_push_number(ctx, 60);
-    duk_put_prop_string(ctx, obj_idx, "y"); 
+    duk_put_prop_string(ctx, obj_idx, "y");
     duk_call(ctx, 2);
     duk_pop(ctx);
     if (score != 300) {
         TESTLOG("addScore(100, {x:80, y:60}) when score is 100 does not equal 200");
-        goto cleanup;      
+        goto cleanup;
     }
     if (scoreBoards[0].pos.x == 0) {
         TESTLOG("addScore(100, {x:80, y:60) does not set x in scoreBoards");
-        goto cleanup;      
+        goto cleanup;
     }
     if (scoreBoards[0].pos.y == 0) {
         TESTLOG("addScore(100, {x:80, y:60) does not set y in scoreBoards");
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -687,7 +687,7 @@ int test_native_addScore(char* function_name) {
 
 int test_native_addWithCharCode(char* function_name) {
     int result = FAIL;
-    
+
     duk_get_global_string(ctx, "addWithCharCode");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'addWithCharCode' is undefined");
@@ -698,7 +698,7 @@ int test_native_addWithCharCode(char* function_name) {
         TESTLOG("'addWithCharCode' is not a function");
         goto cleanup;
     }
-    
+
 
     duk_push_string(ctx, "a");
     duk_push_int(ctx, 2);
@@ -707,7 +707,7 @@ int test_native_addWithCharCode(char* function_name) {
     duk_pop(ctx);
     if (strlen(returned) <= 0 || returned[0] != 'c') {
         TESTLOG("addWithCharCode(\"a\", 2) does not return \"c\"");
-        goto cleanup;      
+        goto cleanup;
     }
 
     duk_get_global_string(ctx, "addWithCharCode");
@@ -718,7 +718,7 @@ int test_native_addWithCharCode(char* function_name) {
     duk_pop(ctx);
     if (strlen(returned) <= 0 || returned[0] != 'f') {
         TESTLOG("addWithCharCode(\"b\", 4) does not return \"f\"");
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -729,7 +729,7 @@ int test_native_addWithCharCode(char* function_name) {
 
 int test_native_end(char* function_name) {
     int result = FAIL;
-    
+
     duk_get_global_string(ctx, "end");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'end' is undefined");
@@ -740,7 +740,7 @@ int test_native_end(char* function_name) {
         TESTLOG("'end' is not a function");
         goto cleanup;
     }
-    
+
     duk_call(ctx, 0);
     duk_pop(ctx);
 
@@ -754,7 +754,7 @@ int test_native_play(char* function_name) {
     int result = FAIL;
 
     enableSound();
-    
+
     duk_get_global_string(ctx, "play");
     if (duk_is_undefined(ctx, -1)) {
         TESTLOG("function 'play' is undefined");
@@ -811,11 +811,11 @@ int test_native_remove(char* function_name) {
     }
     duk_pop(ctx);
 
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "function compare(array1, array2) {\n"
         "  return array1.length === array2.length && array1.every(function(value, index) { return value === array2[index]})}");
 
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "array = [1,2,3,4,5];\n"
         "func = function(x, i) {\n"
         "  return x % 2 == 1;\n"
@@ -836,16 +836,16 @@ int test_native_remove(char* function_name) {
     if (!removedOk) {
         TESTLOG("returned 'removed' array not matching [1,3,5]");
         duk_debug_print(ctx, "removed");
-        goto cleanup;      
+        goto cleanup;
     }
 
     if (!arrayOk) {
         TESTLOG("input array not matching [2,4]");
         duk_debug_print(ctx, "array");
-        goto cleanup;      
+        goto cleanup;
     }
 
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "array = [\"ba\", \"be\", \"bi\", \"bo\", \"bu\", \"ca\", \"ce\", \"ci\", \"co\", \"cu\"];\n"
         "func = function(x, i) {\n"
         "    return x[0] == \"b\"\n"
@@ -866,13 +866,13 @@ int test_native_remove(char* function_name) {
     if (!removedOk) {
         TESTLOG("returned 'removed' array not matching [\"ba\", \"be\", \"bi\", \"bo\", \"bu\"]");
         duk_debug_print(ctx, "removed");
-        goto cleanup;      
+        goto cleanup;
     }
 
     if (!arrayOk) {
         TESTLOG("input array not matching [\"ca\", \"ce\", \"ci\", \"co\", \"cu\"]");
         duk_debug_print(ctx, "array");
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -896,11 +896,11 @@ int test_native_times(char* function_name) {
     }
     duk_pop(ctx);
 
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "function compare(array1, array2) {\n"
         "  return array1.length === array2.length && array1.every(function(value, index) { return value === array2[index]})}");
 
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "func = function(x) {\n"
         "  return x % 2;\n"
         "}\n"
@@ -916,10 +916,10 @@ int test_native_times(char* function_name) {
     if (!resultOk) {
         TESTLOG("resulting array not matching [0,1,0,1,0]");
         duk_debug_print(ctx, "result");
-        goto cleanup;      
+        goto cleanup;
     }
 
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "func = function(x) {\n"
         "  return x\n"
         "}\n"
@@ -935,7 +935,7 @@ int test_native_times(char* function_name) {
     if (!resultOk) {
         TESTLOG("resulting array not matching [0,1,2,3,4]");
         duk_debug_print(ctx, "result");
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -962,7 +962,7 @@ int test_native_rect(char* function_name) {
     drawnRects = 0;
     viewSizeX = 100;
     viewSizeY = 100;
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "color(1)\n"
         "rect(10, 20, 30, 40);\n"
         "rect(10, 20, 30);\n"
@@ -974,7 +974,7 @@ int test_native_rect(char* function_name) {
 
     if (drawnRects != 6) {
         TESTLOG("drew 6 rects but only received %d", drawnRects);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -1001,7 +1001,7 @@ int test_native_box(char* function_name) {
     drawnRects = 0;
     viewSizeX = 100;
     viewSizeY = 100;
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "color(1)\n"
         "box(10, 20, 30, 40);\n"
         "box(10, 20, 30);\n"
@@ -1013,7 +1013,7 @@ int test_native_box(char* function_name) {
 
     if (drawnRects != 6) {
         TESTLOG("drew 6 rects but only received %d", drawnRects);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -1040,7 +1040,7 @@ int test_native_line(char* function_name) {
     drawnRects = 0;
     viewSizeX = 100;
     viewSizeY = 100;
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "color(1)\n"
         "line(10, 20, 30, 40, 5);\n"
         "line(10, 20, 30, 40);\n"
@@ -1055,7 +1055,7 @@ int test_native_line(char* function_name) {
     if (drawnRects < 8) {
         // the number of rects drawn per line is variable
         TESTLOG("drew 8 lines but only received %d draws", drawnRects);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -1109,7 +1109,7 @@ int test_native_char(char* function_name) {
     drawnChars = 0;
     viewSizeX = 100;
     viewSizeY = 100;
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "char(\"a\", 10, 20);\n"
         "char(\"b\", 20, 30);\n"
         "char(\"c\", 30, 40, {rotate:90, mirror:{x:-1,y:-1}, color: \"red\"});\n"
@@ -1117,7 +1117,7 @@ int test_native_char(char* function_name) {
 
     if (drawnChars != 3) {
         TESTLOG("drew 3 chars but only received %d", drawnChars);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -1151,7 +1151,7 @@ int test_native_isVectorLike(char* function_name) {
     duk_pop(ctx);
     if (!returned) {
         TESTLOG("'isVectorLike' erroneously returned false for {x: 1.0, y: 1.0}");
-        goto cleanup;        
+        goto cleanup;
     }
 
     duk_get_global_string(ctx, "isVectorLike");
@@ -1204,7 +1204,7 @@ int test_native_arc(char* function_name) {
     drawnRects = 0;
     viewSizeX = 100;
     viewSizeY = 100;
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "color(1)\n"
         "arc(10, 20, 30, 5, 0, PI);\n"
         "arc({x:10, y:20}, 30, 5, PI, 3*PI/2);\n"
@@ -1215,7 +1215,7 @@ int test_native_arc(char* function_name) {
     if (drawnRects < 4) {
         // the number of rects drawn per line is variable
         TESTLOG("drew 4 arcs but only received %d draws", drawnRects);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -1242,7 +1242,7 @@ int test_native_bar(char* function_name) {
     drawnRects = 0;
     viewSizeX = 100;
     viewSizeY = 100;
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "color(1)\n"
         "bar(10, 20, 30, 5, PI, 0.5);\n"
         "bar({x: 10, y: 20}, 30, 5, PI, 0.5);\n"
@@ -1255,7 +1255,7 @@ int test_native_bar(char* function_name) {
     if (drawnRects < 6) {
         // the number of rects drawn per bar is variable
         TESTLOG("drew 6 bars but only received %d draws", drawnRects);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -1282,7 +1282,7 @@ int test_native_particle(char* function_name) {
     drawnRects = 0;
     viewSizeX = 100;
     viewSizeY = 100;
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "color(1)\n"
         "particle(10, 20, 30, 5, PI, 0.5);\n"
         "particle({x: 10, y: 20}, 30, 5, PI, 0.5);\n"
@@ -1296,7 +1296,7 @@ int test_native_particle(char* function_name) {
 
     if (drawnRects < 7) {
         TESTLOG("drew 7 particles but only received %d draws", drawnRects);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -1323,7 +1323,7 @@ int test_native_text(char* function_name) {
     drawnChars = 0;
     viewSizeX = 100;
     viewSizeY = 100;
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "color(1)\n"
         "text(\"hello\", 10, 20);\n"
         "text(\"hello\", 10, 20, {rotate:90, mirror:{x:-1,y:-1}, color: \"red\"});\n"
@@ -1333,7 +1333,7 @@ int test_native_text(char* function_name) {
 
     if (drawnChars < 4) {
         TESTLOG("drew 4 texts but only received %d draws", drawnChars);
-        goto cleanup;      
+        goto cleanup;
     }
 
     result = SUCCESS;
@@ -1381,11 +1381,11 @@ int test_native_vector(char* function_name) {
     drawnChars = 0;
     viewSizeX = 100;
     viewSizeY = 100;
-    duk_eval_string_noresult(ctx, 
+    duk_eval_string_noresult(ctx,
         "color(1)\n"
         "var v1 = new Vector(10, 20);\n"
         "var v2 = new Vector({x: 10, y: 20});\n"
-        "var v3 = vec({x: 10, y: 20});\n"  
+        "var v3 = vec({x: 10, y: 20});\n"
         "var v4 = vec(10, 20);\n"
         "function reset_v1234() {v1 = vec(10, 20); v2 = vec(10, 20); v3 = vec(10, 20); v4 = vec(10, 20);};\n"
     );
@@ -1396,10 +1396,10 @@ int test_native_vector(char* function_name) {
         duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
         p = (Vector*)duk_get_pointer(ctx, -1);
         duk_pop_2(ctx);
-    
+
         if (p->x != 10.0 || p->y != 20.0) {
             TESTLOG("%s should be x=10.0, y=20.0 but got x=%0.1f, y=%0.1f", ident, p->x, p->y);
-            goto cleanup;      
+            goto cleanup;
         }
     }
 
@@ -1418,32 +1418,32 @@ int test_native_vector(char* function_name) {
         duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
         p = (Vector*)duk_get_pointer(ctx, -1);
         duk_pop_2(ctx);
-    
+
         if (p->x != 25.0 || p->y != 10.0) {
             TESTLOG("%s should be set to x=25.0, y=10.0 but got x=%0.1f, y=%0.1f", ident, p->x, p->y);
-            goto cleanup;      
+            goto cleanup;
         }
     }
 
     duk_eval_string_noresult(ctx,
         "v2.set(v1);\n"
     );
-    
+
     duk_get_global_string(ctx, "v1");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
     p1 = (Vector*)duk_get_pointer(ctx, -1);
     duk_pop_2(ctx);
-    
+
     duk_get_global_string(ctx, "v2");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
     p2 = (Vector*)duk_get_pointer(ctx, -1);
     duk_pop_2(ctx);
-    
+
     if (p1->x != p2->x || p1->y != p2->y) {
         TESTLOG("v1 and v2 should be same; instead v1=(%0.1f, %0.1f) v2=(%0.1f, %0.1f)", p1->x, p2->x, p1->y, p2->y);
-        goto cleanup;      
-    } 
-    
+        goto cleanup;
+    }
+
     duk_eval_string_noresult(ctx,
         "reset_v1234();\n"
         "v1.add(v2);\n"
@@ -1459,8 +1459,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 20.0 || p->y != 40.0) {
         TESTLOG("after add, v1 should be x=20.0, y=40.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v2");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1469,8 +1469,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != -10.0 || p->y != -20.0) {
         TESTLOG("after sub, v2 should be x=-10.0, y=-20.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v3");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1479,8 +1479,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 40.0 || p->y != 80.0) {
         TESTLOG("after mul, v3 should be x=40.0, y=80.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v4");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1489,8 +1489,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 5.0 || p->y != 10.0) {
         TESTLOG("after div, v4 should be x=5.0, y=10.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "reset_v1234();\n"
@@ -1507,8 +1507,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 10.0 || p->y != 10.0) {
         TESTLOG("after clamp, v1 should be x=10.0, y=10.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v2");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1517,8 +1517,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 10.0 || p->y != 1.0) {
         TESTLOG("after clamp, v2 should be x=10.0, y=1.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v3");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1527,8 +1527,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 1.0 || p->y != 1.0) {
         TESTLOG("after clamp, v3 should be x=1.0, y=1.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v4");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1537,8 +1537,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 0 || p->y != 0) {
         TESTLOG("after wrap, v4 should be x=0.0, y=0.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "reset_v1234();\n"
@@ -1554,8 +1554,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 20.0 || p->y != 10.0) {
         TESTLOG("after swapXy, v1 should be x=20.0, y=10.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v2");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1568,13 +1568,13 @@ int test_native_vector(char* function_name) {
 
     if (p->x < 0 || p->x > 1.0 || p->y < 0 || p->y > 1.0) {
         TESTLOG("after normalize, v2 should be 0<=x<=1.0, 0<=y<=1.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     if (length != 1.0) {
         TESTLOG("after normalize, v2 length should be 1.0; not %0.1f", length);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "v1.set(2.3, 2.7);\n"
@@ -1592,8 +1592,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 2.0 || p->y != 3.0) {
         TESTLOG("after round, v1 should be x=2.0, y=3.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v2");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1602,8 +1602,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 2.0 || p->y != 2.0) {
         TESTLOG("after floor, v2 should be x=2.0, y=2.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v3");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1612,8 +1612,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 3.0 || p->y != 3.0) {
         TESTLOG("after ceil, v3 should be x=3.0, y=3.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "v1.set(1, 1);\n"
@@ -1626,8 +1626,8 @@ int test_native_vector(char* function_name) {
 
     if (!APPROX_EQUAL(angle, M_PI / 4, 0.05)) {
         TESTLOG("v1 angle should be 0.785398; not %0.6f", angle);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "var e1 = v2.equals(v2);\n"
@@ -1640,8 +1640,8 @@ int test_native_vector(char* function_name) {
 
     if (!equal) {
         TESTLOG("v2 should be equal to v2");
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "e2");
     equal = duk_get_boolean(ctx, -1);
@@ -1649,8 +1649,8 @@ int test_native_vector(char* function_name) {
 
     if (equal) {
         TESTLOG("v1 should not be equal to v2");
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "v1 = vec(0, 0);\n"
@@ -1665,8 +1665,8 @@ int test_native_vector(char* function_name) {
 
     if (length != 0) {
         TESTLOG("distance from v2 to v2 should be 0, not %0.6f", length);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "d2");
     length = duk_get_number(ctx, -1);
@@ -1674,8 +1674,8 @@ int test_native_vector(char* function_name) {
 
     if (!APPROX_EQUAL(length, 10.0, 0.05)) {
         TESTLOG("distance from v1 to v2 should be 10.0, not %0.6f", length);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "var a1 = v2.angleTo(v2);\n"
@@ -1688,8 +1688,8 @@ int test_native_vector(char* function_name) {
 
     if (angle != 0) {
         TESTLOG("angle from v2 to v2 should be 0, not %0.6f", angle);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "a2");
     angle = duk_get_number(ctx, -1);
@@ -1697,8 +1697,8 @@ int test_native_vector(char* function_name) {
 
     if (!APPROX_EQUAL(angle, 0.9272952, 0.01)) {
         TESTLOG("angle from v1 to v2 should be 0.9272952, not %0.6f", angle);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "v1 = vec(0, 1);\n"
@@ -1712,8 +1712,8 @@ int test_native_vector(char* function_name) {
 
     if (!APPROX_EQUAL(p->x, 0.0, 0.0001) || !APPROX_EQUAL(p->y, -1.0, 0.0001)) {
         TESTLOG("after rotate, v1 should be x=0.0, y=-1.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "v1 = vec(0, 1);\n"
@@ -1727,8 +1727,8 @@ int test_native_vector(char* function_name) {
 
     if (!APPROX_EQUAL(p->x, -20.0, 0.0001) || !APPROX_EQUAL(p->y, 1.0, 0.0001)) {
         TESTLOG("after addWithAngle, v1 should be x=-20.0, y=1.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "v2 = vec(50, 50);\n"
@@ -1742,8 +1742,8 @@ int test_native_vector(char* function_name) {
 
     if (!equal) {
         TESTLOG("v2=(50,50) should be in rect(0, 100, 0, 100)");
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "e2");
     equal = duk_get_boolean(ctx, -1);
@@ -1751,8 +1751,8 @@ int test_native_vector(char* function_name) {
 
     if (equal) {
         TESTLOG("v2=(50,50) should not be in rect(0, 1, 0, 1)");
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_eval_string_noresult(ctx,
         "v1 = vec();\n"
@@ -1768,9 +1768,9 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 0.0 || p->y != 0.0) {
         TESTLOG("v1=vec() should be x=0, y=0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
-    
+        goto cleanup;
+    }
+
     duk_get_global_string(ctx, "v2");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
     p = (Vector*)duk_get_pointer(ctx, -1);
@@ -1778,8 +1778,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 50.0 || p->y != 0.0) {
         TESTLOG("v2=vec(50) should be x=50.0, y=0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v3");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1788,8 +1788,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 0.0 || p->y != 0.0) {
         TESTLOG("v3=vec(50,50).set() should be x=0.0, y=0.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     duk_get_global_string(ctx, "v4");
     duk_get_prop_string(ctx, -1, DUK_HIDDEN_SYMBOL("vectordata"));
@@ -1798,8 +1798,8 @@ int test_native_vector(char* function_name) {
 
     if (p->x != 25.0 || p->y != 0.0) {
         TESTLOG("v4=vec(50,50).set(25) should be x=25.0, y=0.0; not x=%0.1f, y=%0.1f", p->x, p->y);
-        goto cleanup;      
-    } 
+        goto cleanup;
+    }
 
     result = SUCCESS;
 

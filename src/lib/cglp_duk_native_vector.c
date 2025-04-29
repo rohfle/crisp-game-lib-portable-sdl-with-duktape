@@ -19,10 +19,10 @@ duk_idx_t parse_vector(duk_context* ctx, duk_idx_t idx, duk_idx_t top, Vector* d
     } else if (duk_has_prop_string(ctx, idx, DUK_HIDDEN_SYMBOL("vectordata"))) {
         duk_get_prop_string(ctx, idx, DUK_HIDDEN_SYMBOL("vectordata"));
         Vector *otherdata = duk_get_pointer(ctx, -1);
-        memcpy(data, otherdata, sizeof(Vector));     
+        memcpy(data, otherdata, sizeof(Vector));
         duk_pop(ctx);
         idx += 1;
-    } else { 
+    } else {
         duk_get_prop_string(ctx, idx, "x");
         data->x = duk_get_number(ctx, -1);
         duk_get_prop_string(ctx, idx, "y");
@@ -89,7 +89,7 @@ duk_ret_t native_vector_constructor(duk_context *ctx) {
     } else {
         duk_push_object(ctx);
     }
-    
+
     duk_idx_t obj_idx = duk_normalize_index(ctx, -1);
     Vector *data = malloc(sizeof(Vector));
     data->x = 0;
@@ -127,13 +127,13 @@ duk_ret_t native_vector_constructor(duk_context *ctx) {
     duk_push_c_function(ctx, native_vector_length_get, 0 /*nargs*/);
     duk_def_prop(ctx,
                 obj_idx,
-                DUK_DEFPROP_HAVE_GETTER);  
+                DUK_DEFPROP_HAVE_GETTER);
 
     duk_push_string(ctx, "angle");
     duk_push_c_function(ctx, native_vector_angle_get, 0 /*nargs*/);
     duk_def_prop(ctx,
                 obj_idx,
-                DUK_DEFPROP_HAVE_GETTER); 
+                DUK_DEFPROP_HAVE_GETTER);
 
     duk_push_c_function(ctx, native_vector_finalizer, 1);
     duk_set_finalizer(ctx, obj_idx);
