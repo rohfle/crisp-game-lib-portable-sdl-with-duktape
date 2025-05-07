@@ -5,7 +5,12 @@
 [submodule "SDL3"]
 	path = SDL3
 	url = https://github.com/libsdl-org/SDL.git
-[submodule "submodules/crisp-game-lib"]
-	path = submodules/crisp-game-lib
-	url = https://github.com/abagames/crisp-game-lib
+
+[submodule "submodules/crisp-game-lib-games"]
+	path = submodules/crisp-game-lib-games
+	url = https://github.com/abagames/crisp-game-lib-games.git
+        ignore = dirty
+[submodule "submodules/claude-one-button-game-creation"]
+	path = submodules/claude-one-button-game-creation
+	url = https://github.com/abagames/claude-one-button-game-creation.git
         ignore = dirty
