@@ -7,7 +7,7 @@
 #define KEY_REPEAT_DURATION 30
 int gameCount = 0;
 static Game games[MAX_GAME_COUNT];
-static int gameIndex = 2;
+static int gameIndex = 1;
 static int keyRepeatTicks = 0;
 
 static void update() {
@@ -25,6 +25,7 @@ static void update() {
       (keyRepeatTicks > KEY_REPEAT_DURATION &&
        (input.b.isPressed || input.down.isPressed))) {
     gameIndex++;
+    gameIndex = wrap(gameIndex, 1, gameCount);
     while(games[gameIndex].update == NULL)
     {
       gameIndex++;
@@ -37,6 +38,7 @@ static void update() {
   if (input.up.isJustPressed ||
       (keyRepeatTicks > KEY_REPEAT_DURATION && input.up.isPressed)) {
     gameIndex--;
+    gameIndex = wrap(gameIndex, 1, gameCount);
     while(games[gameIndex].update == NULL)
     {
       gameIndex--;
