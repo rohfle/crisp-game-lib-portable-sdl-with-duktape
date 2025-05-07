@@ -19,6 +19,10 @@ if [ "$#" -eq 0 ]; then
         while IFS= read -r -d '' gamepath; do
             compile_game "$gamepath"
         done
+	find submodules/crisp-game-lib-11-games/docs/ -maxdepth 2 -mindepth 2 -type f -iname "main.js" ! -path '*/_*' ! -path '*-es5/*' -print0 |
+        while IFS= read -r -d '' gamepath; do
+            compile_game "$gamepath"
+        done
 else
     for gamename in "$@"; do
         gamepath="submodules/crisp-game-lib-games/docs/$gamename/main.js"
