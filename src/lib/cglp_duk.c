@@ -28,11 +28,14 @@ void updateJSFrame();
 char* getTitleFromFilename(char* filename) {
     char *dot = strchr(filename, '.');
     char* title;
+    int length;
     if (!dot) {
-        title = strdup(filename);
+        length = strlen(filename);
     } else {
-        title = strndup(filename, dot - filename);
+        length = (dot - filename);
     }
+    title = calloc(length+1, sizeof(char));
+    strncpy(title, filename, length);
     for (size_t i = 0; i < strlen(title); i++) {
         title[i] = toupper(title[i]);
     }

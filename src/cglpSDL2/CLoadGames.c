@@ -14,19 +14,18 @@
 #include "cglp_duk.h"
 
 // TODO: override with cli argument
-const char* GAMES_DIRECTORY = "./games";
-
+#define GAMES_DIRECTORY "games"
 
 #ifdef _WIN32
+#include <windows.h>
+
 int md_readJSGame(char* filename, char* buf, int buflen) {
     buflen -= 1; // allow for space for null termination
 
-    if (!SetCurrentDirectoryW(directory)) {
-        consoleLog("SetCurrentDirectoryW: Error opening directory %s: error %d\n", GAMES_DIRECTORY, errno);
-        return -1;
-    }
+    char filepath[MAX_PATH] = GAMES_DIRECTORY "\\";
+    strcat(filepath, filename);
 
-    HANDLE hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL,
+    HANDLE hFile = CreateFile(filepath, GENERIC_READ, FILE_SHARE_READ, NULL,
         OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
         consoleLog("CreateFile: Error opening game %s: error %d\n", filename, errno);
@@ -102,7 +101,7 @@ void md_loadJSGames() {
     WIN32_FIND_DATA findData;
     HANDLE hFind = INVALID_HANDLE_VALUE;
 
-    hFind = FindFirstFile("*.js", &findData);
+    hFind = FindFirstFile(GAMES_DIRECTORY "\\*.js", &findData);
     if (hFind == INVALID_HANDLE_VALUE)
     {
         consoleLog("FindFirstFile: Error opening directory %s: error %d\n", GAMES_DIRECTORY, GetLastError());

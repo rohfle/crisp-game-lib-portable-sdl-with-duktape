@@ -6,8 +6,8 @@ void addGameSection(char *sectionName)
   addGame(sectionName, "", NULL, NULL, 0, o, false, NULL);
 }
 
-void addGames(char* gamesPath)
+void addGames()
 {
   // if you want add other c games do so here
-  md_loadJSGames(gamesPath);
+  md_loadJSGames();
 }

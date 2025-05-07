@@ -4,6 +4,10 @@
 #include "cglp.h"
 #include "duktape.h"
 
+#ifndef MAX
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#endif
+
 EXTERNC char* colorsAsStrings[];
 EXTERNC char* soundsAsStrings[];
 
