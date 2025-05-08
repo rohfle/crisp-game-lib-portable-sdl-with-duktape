@@ -1,4 +1,12 @@
 dependencies:
+  LovyanGFX:
+    component_hash: dfd18bad566cc59688f71f0628cb1015f0de9638df9f81e759f48ad6662dfce8
+    dependencies: []
+    source:
+      git: https://github.com/lovyan03/LovyanGFX.git
+      path: .
+      type: git
+    version: 5438181440c71cf30bbdc347b0b1597ae3ebf77d
   espressif/esp_lcd_qemu_rgb:
     component_hash: e8981dd7399504a5ab647ce28a4876f8467c03b759895f50c24f0cb6095faaa0
     dependencies:
@@ -13,16 +21,20 @@ dependencies:
     source:
       type: idf
     version: 5.4.1
-  lvgl/lvgl:
-    component_hash: 948bff879a345149b83065535bbc4a026ce9f47498a22881e432a264b9098015
-    dependencies: []
+  joltwallet/littlefs:
+    component_hash: e1dbe782be5aa58e879fe9f22bee60e5ff68acbfe3793d92a2e730c27374c787
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
     source:
       registry_url: https://components.espressif.com/
       type: service
-    version: 8.3.11
+    version: 1.19.2
 direct_dependencies:
+- LovyanGFX
 - espressif/esp_lcd_qemu_rgb
-- lvgl/lvgl
-manifest_hash: 5d43e7bc66eed4d27670807b44211a5820b3218f02b7dbdd57bbe0d47c4b6833
+- joltwallet/littlefs
+manifest_hash: 1668a2868117d2ce23fbd00f8fe3b07dbb9727fde6db4f44dd416b8bf8cbacf6
 target: esp32
 version: 2.0.0
