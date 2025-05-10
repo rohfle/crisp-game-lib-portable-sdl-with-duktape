@@ -1,3 +1,12 @@
+# COMMANDS TO RUN
+```
+idf.py qemu --graphics --qemu-extra-args "-serial telnet:localhost:4444,server,nowait" monitor
+```
+
+```
+python3 key_client.py
+```
+
 # QEMU RGB Panel
 
 This example demonstrates how to use the virtual QEMU RGB panel. In this case, LVGL uses the virtual panel to render its graphical user interface.

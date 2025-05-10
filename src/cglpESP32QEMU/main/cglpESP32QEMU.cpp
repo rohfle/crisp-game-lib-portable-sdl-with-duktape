@@ -6,6 +6,7 @@
 #include <fcntl.h>
 
 #include "driver/gpio.h"
+#include "driver/uart.h"
 #include "esp_err.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_qemu_rgb.h"
@@ -30,13 +31,14 @@
 #include "machineDependent.h"
 extern "C" {
 #include "cglp_duk.h"
+#include "cglp_duk_native.h"
 }
 
 #define GAMES_DIRECTORY "/games"
 
 const static char* TAG = "cglp";
 
-int init_storage() {
+int initStorage() {
   ESP_LOGI(TAG, "Initializing LittleFS");
 
   esp_vfs_littlefs_conf_t conf = {
@@ -197,7 +199,7 @@ static void addSoundTone(float freq, float duration, float when) {
 
 void md_drawRect(float x, float y, float w, float h, unsigned char r,
                  unsigned char g, unsigned char b) {
-                  ESP_LOGI("cglp", "md_drawRect");
+                  // ESP_LOGI("cglp", "md_drawRect");
   canvas.fillRect((int)x, (int)y, (int)w, (int)h, lcd.color565(r, g, b));
 }
 
@@ -244,7 +246,7 @@ static void createCharacterImageData(
 
 void md_drawCharacter(unsigned char grid[CHARACTER_HEIGHT][CHARACTER_WIDTH][3],
                       float x, float y, int hash) {
-                        ESP_LOGI("cglp", "md_drawCharacter");
+                        // ESP_LOGI("cglp", "md_drawCharacter");
   CharaterSprite *cp = NULL;
   for (int i = 0; i < characterSpritesCount; i++) {
     if (characterSprites[i].hash == hash) {
@@ -266,10 +268,12 @@ void md_drawCharacter(unsigned char grid[CHARACTER_HEIGHT][CHARACTER_WIDTH][3],
 }
 
 void md_clearView(unsigned char r, unsigned char g, unsigned char b) {
+  // ESP_LOGI("cglp", "md_clearView r=0x%02x g=0x%02x b=0x%02x", r, g, b);
   canvas.fillSprite(lcd.color565(r, g, b));
 }
 
 void md_clearScreen(unsigned char r, unsigned char g, unsigned char b) {
+  // ESP_LOGI("cglp", "md_clearScreen");
   lcd.fillScreen(lcd.color565(r, g, b));
 }
 
@@ -294,11 +298,6 @@ void md_initView(int w, int h) {
   }
   isCanvasCreated = true;
   canvas.createSprite(w, h);
-  if (w > 135) {
-    lcd.setRotation(1);
-  } else {
-    lcd.setRotation(0);
-  }
   canvasX = (lcd.width() - w) / 2;
   canvasY = (lcd.height() - h) / 2;
   resetCharacterSprite();
@@ -306,11 +305,12 @@ void md_initView(int w, int h) {
 
 static TaskHandle_t frameTaskHandle;
 
+static bool ba;
+static bool bb;
+static bool bleft, bright, bup, bdown;
+
 static void updateFromFrameTask() {
-  // TODO: buttons
-  bool ba = false; // !lgfx::gpio_in(BUTTON_A_PIN);
-  bool bb = false; // !lgfx::gpio_in(BUTTON_B_PIN);
-  setButtonState(false, false, false, false, bb, ba);
+  setButtonState(bleft, bright, bup, bdown, bb, ba);
   updateFrame();
   lcd.startWrite();
   canvas.pushSprite(canvasX, canvasY);
@@ -336,7 +336,7 @@ static void updateFrameTask(void *pvParameters) {
 static TaskHandle_t soundTaskHandle;
 
 static void updateFromSoundTask() {
-  // M5.Beep.update();
+
   soundTime += 60 / tempo / TONE_PER_NOTE;
   float lastWhen = 0;
   int ti = -1;
@@ -365,8 +365,8 @@ static void updateSoundTask(void *pvParameters) {
 
 void ram_monitor_task(void *arg) {
   while (true) {
-      ESP_LOGI("MONITOR", "Free heap: %lu bytes", esp_get_free_heap_size());
-      vTaskDelay(pdMS_TO_TICKS(1000));  // Delay 1 second
+      ESP_LOGI("MONITOR", "Free heap: %lu bytes, ticks=%i", esp_get_free_heap_size(), ticks);
+      vTaskDelay(pdMS_TO_TICKS(10000));  // Delay 10 second
   }
 }
 
@@ -384,8 +384,7 @@ static bool IRAM_ATTR onSoundTimer(gptimer_handle_t timer, const gptimer_alarm_e
     return pdFALSE;
 }
 
-void init_timers() {
-    // === Frame Timer ===
+void initTimers() {
     gptimer_config_t frame_cfg = {
         .clk_src = GPTIMER_CLK_SRC_APB,
         .direction = GPTIMER_COUNT_UP,
@@ -411,7 +410,6 @@ void init_timers() {
     ESP_ERROR_CHECK(gptimer_enable(frame_timer));
     ESP_ERROR_CHECK(gptimer_start(frame_timer));
 
-    // === Sound Timer ===
     gptimer_config_t sound_cfg = {
         .clk_src = GPTIMER_CLK_SRC_APB,
         .direction = GPTIMER_COUNT_UP,
@@ -437,104 +435,104 @@ void init_timers() {
     ESP_ERROR_CHECK(gptimer_enable(sound_timer));
     ESP_ERROR_CHECK(gptimer_start(sound_timer));
 
-    // === Tasks ===
-    xTaskCreatePinnedToCore(updateFrameTask, "updateFrameTask", 8192, NULL, 1, &frameTaskHandle, APP_CPU_NUM);
-    xTaskCreatePinnedToCore(updateSoundTask, "updateSoundTask", 8192, NULL, 2, &soundTaskHandle, PRO_CPU_NUM);
+    BaseType_t result = xTaskCreatePinnedToCore(updateFrameTask, "updateFrameTask", 8192, NULL, 1, &frameTaskHandle, APP_CPU_NUM);
+    if (result != pdPASS) {
+      ESP_LOGE(TAG, "updateFrameTask task aint pinning: result=%d", result);
+    }
+    result = xTaskCreatePinnedToCore(updateSoundTask, "updateSoundTask", 8192, NULL, 2, &soundTaskHandle, PRO_CPU_NUM);
+    if (result != pdPASS) {
+      ESP_LOGE(TAG, "updateSoundTask task aint pinning: result=%d", result);
+    }
 }
 
 
 extern "C" void app_main(void) {
+
   xTaskCreate(ram_monitor_task, "ram_monitor", 2048, NULL, 5, NULL);
-
-  init_storage();
-  ESP_LOGI(TAG, "got to here");
+  initStorage();
   lcd.init();
-  lcd.setRotation(0);
-  lcd.setBrightness(128);
-  lcd._panel_instance.drawPixelPreclipped(10, 10, lcd.color565(31, 0, 0));
+  initCharacterSprite();
+  initSoundTones();
+  disableSound();
+  initGame();
+  // ESP_LOGI("main", "COLOR CHECK");
+  // for (int i = 0; i < COLOR_COUNT; i++)  {
+  //   const auto c = colorRgbs[i];
+  //   const auto c565 = lcd.color565(c.r, c.g, c.b);
+  //   ESP_LOGI("main", " %2d: %8s r=%u (0x%02x) g=%u (0x%02x) b=%u (0x%02x), rgb565=0x%04x (0x%02x, 0x%02x, 0x%02x)",
+  //     i, colorsAsStrings[i],
+  //     c.r, c.r, c.g, c.g, c.b, c.b,
+  //     c565, c565 >> 11 & 31, c565 >> 5 & 63, c565 & 31
+  //   );
+  // }
+  initTimers();
 
-  lcd._panel_instance.setWindow(10, 10, 20, 20);
-  lcd._panel_instance.writeBlock(lcd.color565(0, 63, 0), 100);
+  #define UART1_BAUD_RATE     115200
+  #define UART1_BUFFER_SIZE   1024
 
-  vTaskDelay(pdMS_TO_TICKS(5000));
-  lcd.fillScreen(lcd.color565(31, 0, 0));
-  vTaskDelay(pdMS_TO_TICKS(5000));
-  canvas.fillSprite(lcd.color565(0, 63, 0));
-  vTaskDelay(pdMS_TO_TICKS(5000));
-  // ESP_LOGI(TAG, "got to here");
-  // initCharacterSprite();
-  // initSoundTones();
-  // ESP_LOGI(TAG, "got to here");
-  // disableSound();
-  // initGame();
+      // Configure UART1 parameters
+      uart_config_t uart_config = {
+          .baud_rate = UART1_BAUD_RATE,
+          .data_bits = UART_DATA_8_BITS,
+          .parity = UART_PARITY_DISABLE,
+          .stop_bits = UART_STOP_BITS_1,
+          .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+      };
 
-  // ESP_LOGI(TAG, "got to here");
+      // Install UART driver
+      uart_driver_install(UART_NUM_1, UART1_BUFFER_SIZE, 0, 0, NULL, 0);
+      uart_param_config(UART_NUM_1, &uart_config);
+      uart_set_pin(UART_NUM_1, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
+      // Send data
+      #define READBUF_LEN 16
+      char readbuf[READBUF_LEN] = {0};
 
-  // hw_timer_t *frameTimer = NULL;
-  // frameTimer = timerBegin(0, getApbFrequency() / FPS / 1000, true);
-  // timerAttachInterrupt(frameTimer, &onFrameTimer, true);
-  // timerAlarmWrite(frameTimer, 1000, true);
-  // timerAlarmEnable(frameTimer);
+      // Loop to keep the task running
+      while (1) {
+        int len = uart_read_bytes(UART_NUM_1, readbuf, READBUF_LEN, 10 / portTICK_PERIOD_MS);
+        if (len == 0) {
+          continue;
+        } else if (len < 0) {
+          ESP_LOGE("UART2", "uart_read_bytes returned error %d", len);
+          return;
+        } else {
+          for (int i = 0; i < len; i++) {
+            switch(readbuf[i]) {
+              case 'A':
+              case 'a':
+                ba = (readbuf[i] == 'A');
+                break;
+              case 'B':
+              case 'b':
+                bb = (readbuf[i] == 'B');
+                break;
+              case 'U':
+              case 'u':
+                bup = (readbuf[i] == 'U');
+                break;
+              case 'L':
+              case 'l':
+                bleft = (readbuf[i] == 'L');
+                break;
+              case 'D':
+              case 'd':
+                bdown = (readbuf[i] == 'D');
+                break;
+              case 'R':
+              case 'r':
+                bright = (readbuf[i] == 'R');
+                break;
+              case 'E':
+              case 'e':
+                if (!isInMenu) goToMenu();
+                break;
+            }
+          }
 
-
-
-  // xTaskCreateUniversal(updateFrameTask, "updateFrameTask", 8192, NULL, 1,
-  //                      &frameTaskHandle, APP_CPU_NUM);
-
-
-  // hw_timer_t *soundTimer = NULL;
-  // soundTimer = timerBegin(
-  //     1, getApbFrequency() * (60.0f / tempo / TONE_PER_NOTE) / 1000, true);
-  // timerAttachInterrupt(soundTimer, &onSoundTimer, true);
-  // timerAlarmWrite(soundTimer, 1000, true);
-  // timerAlarmEnable(soundTimer);
-
-
-  // xTaskCreateUniversal(updateSoundTask, "updateSoundTask", 8192, NULL, 2,
-  //                      &soundTaskHandle, PRO_CPU_NUM);
-
-  // gptimer_config_t frame_cfg = {
-  //   .clk_src = GPTIMER_CLK_SRC_APB,
-  //   .direction = GPTIMER_COUNT_UP,
-  //   .resolution_hz = 1000000, // 1 tick = 1 microsecond
-  // };
-  // ESP_ERROR_CHECK(gptimer_new_timer(&frame_cfg, &frame_timer));
-
-
-  // #define APB_FREQUENCY 80000000
-  // // === Frame Timer ===
-  // timer_config_t frame_timer_config = {
-  //   .alarm_en = TIMER_ALARM_EN,
-  //   .counter_en = TIMER_PAUSE,
-  //   .counter_dir = TIMER_COUNT_UP,
-  //   .auto_reload = TIMER_AUTORELOAD_EN,
-  //   .divider = APB_FREQUENCY / FPS / 1000,
-  // };
-  // timer_init(TIMER_GROUP_0, TIMER_0, &frame_timer_config);
-  // timer_set_alarm_value(TIMER_GROUP_0, TIMER_0, 1000);
-  // timer_enable_intr(TIMER_GROUP_0, TIMER_0);
-  // timer_isr_register(TIMER_GROUP_0, TIMER_0, onFrameTimer, NULL, ESP_INTR_FLAG_IRAM, NULL);
-  // timer_start(TIMER_GROUP_0, TIMER_0);
-
-  // // === Sound Timer ===
-  // timer_config_t sound_timer_config = {
-  //   .alarm_en = TIMER_ALARM_EN,
-  //   .counter_en = TIMER_PAUSE,
-  //   .counter_dir = TIMER_COUNT_UP,
-  //   .auto_reload = TIMER_AUTORELOAD_EN,
-  //   .divider = (uint32_t)(APB_FREQUENCY * (60.0f / tempo / TONE_PER_NOTE) / 1000),
-  // };
-  // timer_init(TIMER_GROUP_0, TIMER_1, &sound_timer_config);
-  // timer_set_alarm_value(TIMER_GROUP_0, TIMER_1, 1000);
-  // timer_enable_intr(TIMER_GROUP_0, TIMER_1);
-  // timer_isr_register(TIMER_GROUP_0, TIMER_1, onSoundTimer, NULL, ESP_INTR_FLAG_IRAM, NULL);
-  // timer_start(TIMER_GROUP_0, TIMER_1);
-
-  // init_timers();
-
-  // // === Tasks ===
-  // xTaskCreatePinnedToCore(updateFrameTask, "updateFrameTask", 8192, NULL, 1, NULL, APP_CPU_NUM);
-  // xTaskCreatePinnedToCore(updateSoundTask, "updateSoundTask", 8192, NULL, 2, NULL, PRO_CPU_NUM);
+          ESP_LOGI("UART2", "got button state A=%d B=%d", ba, bb);
+        }
+      }
 
 }
+

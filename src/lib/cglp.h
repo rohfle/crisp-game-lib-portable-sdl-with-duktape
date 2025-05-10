@@ -16,7 +16,7 @@
 #include "machineDependent.h"
 #include "vector.h"
 
-#define MAX_GAME_COUNT 250
+#define MAX_GAME_COUNT 10
 
 #define FPS 60
 
@@ -107,7 +107,7 @@ typedef struct {
 } CharacterOptions;
 
 typedef struct {
-    char title[100];
+    char title[100]; // TODO: reduce in size
     int hiScore;
 } GameHiScore;
 

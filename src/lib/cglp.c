@@ -87,9 +87,9 @@ void (*onResetGame)(Game *game) = NULL;
 // Collision
 /// \cond
 typedef struct {
-  int rectIndex;
-  int textIndex;
-  int characterIndex;
+  uint8_t rectIndex;
+  uint8_t textIndex;
+  uint8_t characterIndex;
   Vector pos;
   Vector size;
 } HitBox;
@@ -99,7 +99,7 @@ typedef struct {
 //gameFrog (reached around 1580)
 //R Wheel (reached around 400 can probably hit more)
 //B Cannon (reached around 300 depending on nr of balls)
-#define MAX_HIT_BOX_COUNT 2048
+#define MAX_HIT_BOX_COUNT 1000
 /// \endcond
 static HitBox hitBoxes[MAX_HIT_BOX_COUNT];
 static int hitBoxesIndex;
