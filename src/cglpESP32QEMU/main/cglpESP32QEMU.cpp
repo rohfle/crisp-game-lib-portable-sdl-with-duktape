@@ -34,132 +34,7 @@ extern "C" {
 #include "cglp_duk_native.h"
 }
 
-#define GAMES_DIRECTORY "/games"
-
 const static char* TAG = "cglp";
-
-int initStorage() {
-  ESP_LOGI(TAG, "Initializing LittleFS");
-
-  esp_vfs_littlefs_conf_t conf = {
-      .base_path = GAMES_DIRECTORY,
-      .partition_label = "games",
-      .partition = NULL,
-      .format_if_mount_failed = false,
-      .read_only = true,
-      .dont_mount = false,
-      .grow_on_mount = false,
-  };
-
-  // Use settings defined above to initialize and mount LittleFS filesystem.
-  // Note: esp_vfs_littlefs_register is an all-in-one convenience function.
-  esp_err_t ret = esp_vfs_littlefs_register(&conf);
-
-  if (ret != ESP_OK) {
-    if (ret == ESP_FAIL) {
-      ESP_LOGE(TAG, "Failed to mount or format filesystem");
-    } else if (ret == ESP_ERR_NOT_FOUND) {
-      ESP_LOGE(TAG, "Failed to find LittleFS partition");
-    } else {
-      ESP_LOGE(TAG, "Failed to initialize LittleFS (%s)", esp_err_to_name(ret));
-    }
-    return ret;
-  }
-
-  size_t total = 0, used = 0;
-  ret = esp_littlefs_info(conf.partition_label, &total, &used);
-  if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to get LittleFS partition information (%s)",
-             esp_err_to_name(ret));
-    esp_littlefs_format(conf.partition_label);
-  } else {
-    ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
-  }
-  return ret;
-}
-
-// copy pasted from SDL2
-int filename_compare(const void *a, const void *b) {
-  const char **str1 = (const char **)a;
-  const char **str2 = (const char **)b;
-
-  #ifdef _WIN32
-      return _stricmp(*str1, *str2);
-  #else
-      return strcasecmp(*str1, *str2);
-  #endif
-}
-
-// TODO: move to library, use include / makefiles
-int md_readJSGame(char *filename, char *buf, int buflen) {
-  buflen -= 1;  // allow for space for null termination
-
-  const int PATHBUF_MAX_LENGTH = 100;
-  char pathbuf[PATHBUF_MAX_LENGTH + 1] = GAMES_DIRECTORY "/";
-  strncat(pathbuf, filename, PATHBUF_MAX_LENGTH - strlen(pathbuf));
-  pathbuf[PATHBUF_MAX_LENGTH] = '\0';
-
-  FILE *f = fopen(pathbuf, "rb");
-  if (f == NULL) {
-    ESP_LOGE(TAG, "fdopen: Error opening game %s: error %d\n", filename, errno);
-    return -1;
-  }
-  size_t len = fread((void *)buf, 1, buflen, f);
-  if (!feof(f) && ferror(f)) {
-    buf[0] = '\0';  // return zero length string
-    ESP_LOGE(TAG, "fread: Error reading game %s\n", filename);
-    return -1;
-  }
-  if (!feof(f)) {
-    ESP_LOGE(TAG, "fread: Game is too big: over %d bytes %s\n", buflen, filename);
-    return -1;
-  }
-  buf[len] = '\0';  // ensure null termination
-  fclose(f);
-  return len;
-}
-
-void md_loadJSGames() {
-  char *filenames[MAX_GAME_COUNT];
-  int filenameCount = 0;
-
-  DIR *directory = opendir(GAMES_DIRECTORY);
-  if (directory == NULL) {
-    ESP_LOGE(TAG, "opendir: Error opening directory %s: error %d\n", GAMES_DIRECTORY,
-             errno);
-    return;
-  }
-
-  struct dirent *entry = NULL;
-
-  while ((entry = readdir(directory)) != NULL) {
-    char *name = entry->d_name;
-    if (name[0] == '.') {
-      continue;
-    }
-    int len = strlen(name);
-    if (name[len - 3] != '.' || name[len - 2] != 'j' || name[len - 1] != 's') {
-      continue;
-    }
-    filenames[filenameCount++] = strdup(name);
-    if (filenameCount >= MAX_GAME_COUNT) {
-      ESP_LOGW(TAG,
-          "md_loadJSGames: Stopped loading after reaching game limit of %d\n",
-          MAX_GAME_COUNT);
-      break;
-    }
-  }
-  closedir(directory);
-  // sort filenames
-  qsort(filenames, filenameCount, sizeof(char *), filename_compare);
-  // then add the games
-  for (int i = 0; i < filenameCount; i++) {
-    int res = addJSGameFromFile(filenames[i]);
-    // TODO: handle error
-  }
-
-  ESP_LOGI(TAG, "loaded %i games\n", filenameCount);
-}
 
 
 static LGFX_QemuRGB lcd;
@@ -293,6 +168,7 @@ void md_consoleLog(char *msg) {
 }
 
 void md_initView(int w, int h) {
+  lcd.setDimensions(w, h);
   if (isCanvasCreated) {
     canvas.deleteSprite();
   }
@@ -447,24 +323,12 @@ void initTimers() {
 
 
 extern "C" void app_main(void) {
-
   xTaskCreate(ram_monitor_task, "ram_monitor", 2048, NULL, 5, NULL);
-  initStorage();
   lcd.init();
   initCharacterSprite();
   initSoundTones();
   disableSound();
   initGame();
-  // ESP_LOGI("main", "COLOR CHECK");
-  // for (int i = 0; i < COLOR_COUNT; i++)  {
-  //   const auto c = colorRgbs[i];
-  //   const auto c565 = lcd.color565(c.r, c.g, c.b);
-  //   ESP_LOGI("main", " %2d: %8s r=%u (0x%02x) g=%u (0x%02x) b=%u (0x%02x), rgb565=0x%04x (0x%02x, 0x%02x, 0x%02x)",
-  //     i, colorsAsStrings[i],
-  //     c.r, c.r, c.g, c.g, c.b, c.b,
-  //     c565, c565 >> 11 & 31, c565 >> 5 & 63, c565 & 31
-  //   );
-  // }
   initTimers();
 
   #define UART1_BAUD_RATE     115200
