@@ -10,7 +10,6 @@
 #include "cglpSDL2.h"
 #include <math.h>
 #include "CInput.h"
-#include "CLoadGames.h"
 
 #ifdef USE_UINT64_TIMER
     typedef Uint64 TimerType;
@@ -114,7 +113,7 @@ typedef struct {
     TimerType time;           // Current playback time (in samples)
 } AudioState;
 
-typedef struct 
+typedef struct
 {
     SDL_Surface *sprite;
     int hash;
@@ -136,15 +135,6 @@ typedef struct {
     float scanlineFps;
 } CRTEffect;
 
-typedef struct {
-    char title[100];
-    int overlay;
-    bool glowEnabled;
-    bool isDarkColor;
-} gameOverlay;
-
-gameOverlay gameOverLays[MAX_GAME_COUNT];
-
 CRTEffect* crtEffect = NULL;
 
 static GlowDistanceTable* distanceTable = NULL;
@@ -162,54 +152,14 @@ static void logMessage(SDL_PRINTF_FORMAT_STRING const char *fmt, ...)
     vprintf(fmt, ap);
 #else
     SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, fmt, ap);
-#endif    
-    va_end(ap);   
-}
-
-static void resetGame(Game *game)
-{
-    if((strlen(game->title) == 0) || (game->update == NULL) )
-        return;
-
-    int freeIndex = -1;
-    for (int i = 0; i < gameCount; i++)
-    {
-        if((freeIndex == -1) && (strlen(gameOverLays[i].title) == 0))
-            freeIndex = i;
-
-        if ((strlen(gameOverLays[i].title) > 0) && (strcmp(game->title, gameOverLays[i].title) == 0 ))
-        {
-            if(scaledDrawing)
-            {
-                overlay = gameOverLays[i].overlay;
-                glowEnabled = gameOverLays[i].glowEnabled;
-            }
-            else
-            {
-                overlay = 0;
-                glowEnabled = false;
-            }
-            game->options.isDarkColor = gameOverLays[i].isDarkColor;
-            return;
-        }
-    } 
-
-    //no match found add new game
-    if(freeIndex > -1)
-    {
-        gameOverLays[freeIndex].overlay = overlay = 0;
-        gameOverLays[freeIndex].glowEnabled = glowEnabled = false;
-        memset(gameOverLays[freeIndex].title, 0, 100*sizeof(char));
-        strcpy(gameOverLays[freeIndex].title, game->title);
-        gameOverLays[freeIndex].isDarkColor = game->options.isDarkColor;
-    }
-
+#endif
+    va_end(ap);
 }
 
 static CRTEffect* CreateCRTEffect(int screenWidth, int screenHeight, int screenOffsetX, int screenOffsetY,
-    int scanlineSpacing, int scanelineThickness, float scanlineFps, 
+    int scanlineSpacing, int scanelineThickness, float scanlineFps,
     Uint8 scanlineR, Uint8 scanlineG, Uint8 scanlineB, Uint8 scanlineA) {
-    
+
     CRTEffect* effect = (CRTEffect*)SDL_malloc(sizeof(CRTEffect));
     if (!effect) return NULL;
 
@@ -222,7 +172,7 @@ static CRTEffect* CreateCRTEffect(int screenWidth, int screenHeight, int screenO
     effect->scanlineFps = scanlineFps;
 
     // Create main surface directly in screen format
-    effect->scanlineSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, 
+    effect->scanlineSurface = SDL_CreateRGBSurface(SDL_SWSURFACE,
         screenWidth, screenHeight, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
 
     if (!effect->scanlineSurface) {
@@ -231,7 +181,7 @@ static CRTEffect* CreateCRTEffect(int screenWidth, int screenHeight, int screenO
     }
 
     // Set the alpha blend mode
-    if (SDL_SetSurfaceBlendMode(effect->scanlineSurface, SDL_BLENDMODE_BLEND) != 0) 
+    if (SDL_SetSurfaceBlendMode(effect->scanlineSurface, SDL_BLENDMODE_BLEND) != 0)
     {
         SDL_FreeSurface(effect->scanlineSurface);
         SDL_free(effect);
@@ -258,7 +208,7 @@ static void UpdateCRTEffect(CRTEffect* effect, float deltaTime)
     if (!effect) return;
 
     effect->scrollOffset += effect->scanlineFps * deltaTime;
-    
+
     if (effect->scrollOffset >= effect->scanlineSpacing) {
         effect->scrollOffset = 0.0f;
     }
@@ -269,7 +219,7 @@ static void RenderCRTEffect(SDL_Surface* screenSurface, CRTEffect* effect)
     if (!effect || !screenSurface) return;
 
     int offsetY = (int)effect->scrollOffset;
-    
+
     // First part: from offset to end of screen
     SDL_Rect srcRect1 = {
         0,
@@ -277,7 +227,7 @@ static void RenderCRTEffect(SDL_Surface* screenSurface, CRTEffect* effect)
         effect->screenWidth,
         effect->screenHeight - offsetY
     };
-    
+
     SDL_Rect dstRect1 = {
         effect->screenOffsetX,
         effect->screenOffsetY,
@@ -286,7 +236,7 @@ static void RenderCRTEffect(SDL_Surface* screenSurface, CRTEffect* effect)
     };
 
     SDL_BlitSurface(effect->scanlineSurface, &srcRect1, screenSurface, &dstRect1);
-    
+
     // Second part: wrap around from top of texture
     if (offsetY > 0) {
         SDL_Rect srcRect2 = {
@@ -295,7 +245,7 @@ static void RenderCRTEffect(SDL_Surface* screenSurface, CRTEffect* effect)
             effect->screenWidth,
             offsetY
         };
-        
+
         SDL_Rect dstRect2 = {
             effect->screenOffsetX,
             effect->screenOffsetY + effect->screenHeight - offsetY,
@@ -310,64 +260,11 @@ static void RenderCRTEffect(SDL_Surface* screenSurface, CRTEffect* effect)
 static void DestroyCRTEffect(CRTEffect* effect)
 {
     if (!effect) return;
-    
+
     if (effect->scanlineSurface) {
         SDL_FreeSurface(effect->scanlineSurface);
     }
     SDL_free(effect);
-}
-
-static void loadGameOverlays()
-{
-    //initialize
-    for (int i = 0; i < gameCount; i++)
-    {
-        memset(gameOverLays[i].title, 0, 100 * sizeof(char));
-        gameOverLays[i].overlay = 0;
-        gameOverLays[i].glowEnabled = false;
-        gameOverLays[i].isDarkColor = false;
-    }
-    onResetGame = resetGame;
-    //load
-    char fileName[FILENAME_MAX];
-    sprintf(fileName,"%s/.cglpoverlays.dat",SDL_getenv("HOME") == NULL ? ".": SDL_getenv("HOME"));
-    FILE *fp;
-    fp = fopen(fileName, "rb");
-    if(fp)
-    {
-        int i = 0;
-        while (!feof(fp) && (i < gameCount))
-        {
-            fread(gameOverLays[i].title, sizeof(char), 100, fp);
-            fread(&gameOverLays[i].overlay, sizeof(int), 1, fp);
-            fread(&gameOverLays[i].glowEnabled, sizeof(bool), 1, fp);
-            fread(&gameOverLays[i].isDarkColor, sizeof(bool), 1, fp);
-            i++;
-        }
-        fclose(fp);
-    }
-}
-
-static void saveGameOverlays()
-{
-    char fileName[FILENAME_MAX];
-    sprintf(fileName,"%s/.cglpoverlays.dat", SDL_getenv("HOME") == NULL ? ".": SDL_getenv("HOME"));
-    FILE *fp;
-    fp = fopen(fileName, "wb");
-    if(fp)
-    {
-        for (int i = 0; i < gameCount; i++)
-        {
-            if(strlen(gameOverLays[i].title) > 0)
-            {
-                fwrite(gameOverLays[i].title, sizeof(char), 100, fp);
-                fwrite(&gameOverLays[i].overlay, sizeof(int), 1, fp);
-                fwrite(&gameOverLays[i].glowEnabled, sizeof(bool), 1, fp);
-                fwrite(&gameOverLays[i].isDarkColor, sizeof(bool), 1, fp);
-            }
-        }
-        fclose(fp);
-    }
 }
 
 static void loadHighScores()
@@ -400,7 +297,7 @@ static void saveHighScores()
         for (int i = 0; i < gameCount; i++)
         {
             if(strlen(hiScores[i].title) > 0)
-            {                
+            {
                 fwrite(hiScores[i].title, sizeof(char), 100, fp);
                 fwrite(&hiScores[i].hiScore, sizeof(int), 1, fp);
             }
@@ -416,7 +313,7 @@ static GlowDistanceTable* createDistanceTable(int glowSize) {
     int size = glowSize * 2 + 1;
     table->size = size;
     table->distances = (Uint8*)SDL_malloc((size_t)size * size);
-    
+
     if (!table->distances) {
         SDL_free(table);
         return NULL;
@@ -438,7 +335,7 @@ static GlowDistanceTable* createDistanceTable(int glowSize) {
             table->distances[y * size + x] = 255 - scaledDist;
         }
     }
-    
+
     return table;
 }
 
@@ -456,7 +353,7 @@ static void resetCharacterSprite() {
         characterSprites[i].sprite = NULL;
     }
     characterSpritesCount = 0;
-    
+
     if (distanceTable) {
         SDL_free(distanceTable->distances);
         SDL_free(distanceTable);
@@ -470,7 +367,7 @@ static float buggySinf(float angle)
     NORMALIZE_ANGLE(angle);  // Normalize angle to [0, 2π)
 
     // Map angle to nearest 90 (p/2 radians)
-    if (angle < M_PI_4 || angle >= (2 * M_PI - M_PI_4)) 
+    if (angle < M_PI_4 || angle >= (2 * M_PI - M_PI_4))
     {
         return 0.0f;  // Closest to 0 or 360
     } else if (angle < (M_PI_2 + M_PI_4)) {
@@ -489,17 +386,17 @@ static TimerType timeToSample(float t) { return (TimerType)(t * SAMPLE_RATE); }
 static float sampleToTime(TimerType s) { return (float)s / SAMPLE_RATE; }
 
 // Sine wave oscillator function
-static float generateSineWave(float frequency, TimerType ticks) 
+static float generateSineWave(float frequency, TimerType ticks)
 {
     // Calculate fixed-point frequency representation
     TimerType freq_fixed = (TimerType)((frequency * PHASE_MAX) / SAMPLE_RATE);
-    
+
     // Calculate phase using fixed-point arithmetic
     TimerType phase = (ticks * freq_fixed) & (PHASE_MAX - 1);
-    
+
     // Convert phase to float angle
     float phase_float = (2.0f * M_PI * phase) / PHASE_MAX;
-    
+
     return useBugSound ? buggySinf(phase_float) : sinf(phase_float);
 }
 
@@ -513,37 +410,37 @@ static void audio_callback(void *userdata, Uint8 *stream, int len)
     float* float_buffer = (float*)malloc(sample_count * sizeof(float));
     if (float_buffer == NULL)
         return;
- 
+
     memset(float_buffer, 0, sample_count * sizeof(float));
-   
+
     // Track active notes
     int active_note_count = 0;
 
 
-    for (int i = 0; i < audio_state->note_count; i++) 
+    for (int i = 0; i < audio_state->note_count; i++)
     {
         Note *note = &audio_state->notes[i];
-       
+
         // Convert note start time to current time context
         TimerType note_start_sample = timeToSample(note->when);
         float current_sample_time = sampleToTime(audio_state->time);
-       
-        if (!note->active && current_sample_time >= note->when) 
+
+        if (!note->active && current_sample_time >= note->when)
         {
             note->active = true;
         }
 
-        if (note->active) 
+        if (note->active)
         {
             // Determine if note should be deactivated
-            if (current_sample_time > note->when + note->duration + FADE_OUT_TIME) 
+            if (current_sample_time > note->when + note->duration + FADE_OUT_TIME)
             {
                 note->active = false; // Mark note as inactive after fade-out
                 continue; // Skip to the next note
             }
-           
+
             // Sum of all active notes' waveforms
-            for (int j = 0; j < sample_count; j++) 
+            for (int j = 0; j < sample_count; j++)
             {
                 TimerType current_sample = audio_state->time + j;
                 float sample_time = sampleToTime(current_sample);
@@ -552,22 +449,22 @@ static void audio_callback(void *userdata, Uint8 *stream, int len)
                 float note_end_time = note->when + note->duration;
 
                 // Fade out ending notes
-                if (sample_time > note_end_time) 
+                if (sample_time > note_end_time)
                 {
                     float fade_progress = (sample_time - note_end_time) / FADE_OUT_TIME;
                     amplitude *= (1.0f - fade_progress);
-                    if (amplitude < 0.0f) 
+                    if (amplitude < 0.0f)
                         amplitude = 0.0f;
                 }
-				
-			    // Add this note's waveform to the float buffer
+
+                // Add this note's waveform to the float buffer
                 // Use sample time for wave generation
-                float_buffer[j] += generateSineWave(note->frequency, current_sample) * AMPLITUDE * amplitude;                
+                float_buffer[j] += generateSineWave(note->frequency, current_sample) * AMPLITUDE * amplitude;
             }
         }
 
         // Always add notes that are either active or scheduled for the future
-        if (note->active || (note_start_sample > audio_state->time)) 
+        if (note->active || (note_start_sample > audio_state->time))
         {
             audio_state->notes[active_note_count++] = *note;
         }
@@ -578,28 +475,28 @@ static void audio_callback(void *userdata, Uint8 *stream, int len)
 
     // Find the maximum amplitude in the float buffer and normalize
     float max_amplitude = 0.0f;
-    for (int i = 0; i < sample_count; i++) 
+    for (int i = 0; i < sample_count; i++)
     {
-        if (float_buffer[i] > max_amplitude) 
+        if (float_buffer[i] > max_amplitude)
             max_amplitude = float_buffer[i];
-        if (float_buffer[i] < -max_amplitude) 
+        if (float_buffer[i] < -max_amplitude)
             max_amplitude = -float_buffer[i];
     }
 
     // If the maximum amplitude exceeds the allowed range, scale it down
-    if (max_amplitude > 32767.0f) 
+    if (max_amplitude > 32767.0f)
     {
         float scale_factor = 32767.0f / max_amplitude;
-        for (int i = 0; i < sample_count; i++) 
+        for (int i = 0; i < sample_count; i++)
         {
-	        // Normalize and directly convert to Sint16
+            // Normalize and directly convert to Sint16
             buffer[i] = (Sint16)(float_buffer[i] * scale_factor);
         }
-    } 
-    else 
+    }
+    else
     {
         // If there's no clipping, just convert to Sint16 directly
-        for (int i = 0; i < sample_count; i++) 
+        for (int i = 0; i < sample_count; i++)
         {
             buffer[i] = (Sint16)float_buffer[i];
         }
@@ -615,7 +512,7 @@ static void schedule_note(AudioState *audio_state, float frequency, float when, 
     {
         return;
     }
-    
+
     Note *note = &audio_state->notes[audio_state->note_count++];
     note->frequency = frequency;
     note->when = when;
@@ -623,20 +520,20 @@ static void schedule_note(AudioState *audio_state, float frequency, float when, 
     note->active = false;
 }
 
-void md_playTone(float freq, float duration, float when) 
+void md_playTone(float freq, float duration, float when)
 {
     if(soundOn != 1)
         return;
-   
+
     schedule_note(&audio_state, freq, when, duration);
 }
 
-void md_stopTone() 
+void md_stopTone()
 {
     if (soundOn != 1)
         return;
 
-    for (int i = 0; i < audio_state.note_count; i++) 
+    for (int i = 0; i < audio_state.note_count; i++)
     {
         audio_state.notes[i].duration = 0;
     }
@@ -645,27 +542,27 @@ void md_stopTone()
 
 static int InitAudio()
 {
-	SDL_AudioSpec spec = {0};
+    SDL_AudioSpec spec = {0};
     spec.freq = SAMPLE_RATE;
     spec.format = AUDIO_S16SYS;
-    spec.channels = SOUND_CHANNELS; 
+    spec.channels = SOUND_CHANNELS;
     spec.samples = BUFFER_SIZE;
     spec.callback = audio_callback;
     spec.userdata = &audio_state;
-	audioDevice = SDL_OpenAudioDevice(NULL, 0, &spec, &audiospec, 0);
+    audioDevice = SDL_OpenAudioDevice(NULL, 0, &spec, &audiospec, 0);
     if(audioDevice == 0)
-		return -1;
+        return -1;
 
     logMessage("Requested audio specs: format: %d, freq: %d, channels: %d, frames:%d\n", spec.format, spec.freq, spec.channels, spec.samples);
-    logMessage("Obtained audio specs:  format: %d, freq: %d, channels: %d, frames:%d\n", audiospec.format, audiospec.freq, audiospec.channels, audiospec.samples);   
+    logMessage("Obtained audio specs:  format: %d, freq: %d, channels: %d, frames:%d\n", audiospec.format, audiospec.freq, audiospec.channels, audiospec.samples);
 
     SDL_PauseAudioDevice(audioDevice, 0);
-	return 1;
+    return 1;
 }
 
 
-float md_getAudioTime() 
-{ 
+float md_getAudioTime()
+{
     return sampleToTime(audio_state.time);
 }
 
@@ -686,13 +583,13 @@ static void applyGlowToRect(SDL_Surface* surface, SDL_Rect rect, int glowRadius,
 
     SDL_LockSurface(tempSurface);
     Uint32* pixels = (Uint32*)tempSurface->pixels;
-    
+
     // For each glow layer
     for (int layer = glowRadius; layer > 0; layer--) {
         // Calculate alpha with quadratic falloff
         float alphaFactor = 1.0f - powf((float)layer / glowRadius, 2.0f);
         Uint8 currentAlpha = (Uint8)(alphaFactor * glowAlpha);
-        
+
         if (currentAlpha <= 0) continue;
 
         // Draw top outer border
@@ -760,7 +657,7 @@ static void applyGlowToRect(SDL_Surface* surface, SDL_Rect rect, int glowRadius,
             }
         }
     }
-    
+
     SDL_UnlockSurface(tempSurface);
 
     // Blit the temp surface to the target surface
@@ -777,7 +674,7 @@ static void applyGlowToRect(SDL_Surface* surface, SDL_Rect rect, int glowRadius,
 
 // Update glow application to use distance table
 static void applyGlowToCharacterPixel(SDL_Surface* surface, int centerX, int centerY,
-                              Uint8 r, Uint8 g, Uint8 b, 
+                              Uint8 r, Uint8 g, Uint8 b,
                               int glowRadius, Uint8 glowAlpha) {
     if (!surface || glowRadius <= 0) return;
 
@@ -793,7 +690,7 @@ static void applyGlowToCharacterPixel(SDL_Surface* surface, int centerX, int cen
 
     SDL_LockSurface(surface);
     Uint32* pixels = (Uint32*)surface->pixels;
-    
+
     int tableSize = distanceTable->size;
     int halfTable = tableSize / 2;
 
@@ -817,7 +714,7 @@ static void applyGlowToCharacterPixel(SDL_Surface* surface, int centerX, int cen
             if (distance > 0) {
                 Uint8 layerAlpha = (distance * glowAlpha) >> 8;
                 int idx = y * surface->w + x;
-                
+
                 Uint32 existing = pixels[idx];
                 Uint8 er, eg, eb, ea;
                 SDL_GetRGBA(existing, surface->format, &er, &eg, &eb, &ea);
@@ -840,15 +737,15 @@ static SDL_Surface* createCharacterSurface(unsigned char grid[CHARACTER_HEIGHT][
     int baseHeight = (int)ceilf((float)CHARACTER_HEIGHT * scale);
     int fullWidth = withGlow ? baseWidth + (glowRadius * 2) : baseWidth;
     int fullHeight = withGlow ? baseHeight + (glowRadius * 2) : baseHeight;
-    
+
     SDL_Surface* surface = SDL_CreateRGBSurface(SDL_SWSURFACE, fullWidth, fullHeight,
         32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-    
+
     if (!surface) return NULL;
 
     // Clear surface
     SDL_FillRect(surface, NULL, SDL_MapRGBA(surface->format, 0, 0, 0, 0));
-    
+
     int offset = withGlow ? glowRadius : 0;
 
     // First pass: Apply glow for each non-empty character pixel
@@ -858,7 +755,7 @@ static SDL_Surface* createCharacterSurface(unsigned char grid[CHARACTER_HEIGHT][
                 unsigned char r = grid[yy][xx][0];
                 unsigned char g = grid[yy][xx][1];
                 unsigned char b = grid[yy][xx][2];
-                
+
                 if ((r == 0) && (g == 0) && (b == 0)) continue;
 
                 // Calculate center position for this character pixel
@@ -866,7 +763,7 @@ static SDL_Surface* createCharacterSurface(unsigned char grid[CHARACTER_HEIGHT][
                 int centerY = (int)((float)yy * scale) + offset + (int)(scale / 2);
 
                 // Apply glow around this pixel
-                applyGlowToCharacterPixel(surface, centerX, centerY, r, g, b, 
+                applyGlowToCharacterPixel(surface, centerX, centerY, r, g, b,
                                         glowRadius, glowAlpha);
             }
         }
@@ -878,7 +775,7 @@ static SDL_Surface* createCharacterSurface(unsigned char grid[CHARACTER_HEIGHT][
             unsigned char r = grid[yy][xx][0];
             unsigned char g = grid[yy][xx][1];
             unsigned char b = grid[yy][xx][2];
-            
+
             if ((r == 0) && (g == 0) && (b == 0)) continue;
 
             SDL_Rect dstChar = {
@@ -908,7 +805,7 @@ void md_drawCharacter(unsigned char grid[CHARACTER_HEIGHT][CHARACTER_WIDTH][3],
             break;
         }
     }
-    
+
     if (cp == NULL) {
         cp = &characterSprites[characterSpritesCount];
         cp->hash = hash;
@@ -918,7 +815,7 @@ void md_drawCharacter(unsigned char grid[CHARACTER_HEIGHT][CHARACTER_WIDTH][3],
 
         if (tempSurface) {
             cp->sprite = tempSurface;
-            
+
             if (cp->sprite) {
                 characterSpritesCount++;
             }
@@ -966,15 +863,15 @@ void md_drawRect(float x, float y, float w, float h, unsigned char r,
     SDL_FillRect(view, &rect, color);
 }
 
-void md_clearView(unsigned char r, unsigned char g, unsigned char b) 
+void md_clearView(unsigned char r, unsigned char g, unsigned char b)
 {
     if(!view)
         return;
-    
-	//clear screen also in case we resize window
+
+    //clear screen also in case we resize window
     md_clearScreen(clearColorR, clearColorG, clearColorB);
-    
-	Uint32 color = SDL_MapRGB(view->format, (Uint8)r, (Uint8)g, (Uint8)b);
+
+    Uint32 color = SDL_MapRGB(view->format, (Uint8)r, (Uint8)g, (Uint8)b);
     SDL_FillRect(view, NULL, color);
 }
 
@@ -1013,14 +910,14 @@ static void cleanupView() {
     }
 }
 
-void md_initView(int w, int h) 
+void md_initView(int w, int h)
 {
     if(!Renderer)
         return;
 
 #if (SDL_VERSION_ATLEAST(2,26,0))
     SDL_GetWindowSizeInPixels(SdlWindow, &WINDOW_WIDTH , &WINDOW_HEIGHT);
-#else 
+#else
     SDL_GetWindowSize(SdlWindow, &WINDOW_WIDTH, &WINDOW_HEIGHT);
 #endif
     float wscalex = (float)WINDOW_WIDTH / (float)DEFAULT_WINDOW_WIDTH;
@@ -1029,7 +926,7 @@ void md_initView(int w, int h)
 
     origViewW = w;
     origViewH = h;
-    
+
     float xScale = (float)WINDOW_WIDTH / w;
     float yScale = (float)WINDOW_HEIGHT / h;
     if (yScale < xScale)
@@ -1063,18 +960,18 @@ void md_initView(int w, int h)
         glowSize = 2.0f;
         scale = 1.0f;
     }
-    
+
     //logMessage("md_initView: window size: %dx%d requested view size: %dx%d adjusted view size %dx%d scale:%3f\n", WINDOW_WIDTH, WINDOW_HEIGHT, w, h, viewW, viewH, scale);
 
     // Cleanup existing resources
     cleanupView();
-    
+
     // Create new surface
     view = SDL_CreateRGBSurfaceWithFormat(0, viewW, viewH, 32, SDL_PIXELFORMAT_RGBA8888);
-    if (view) 
+    if (view)
     {
         // Create texture from surface
-        viewTexture = SDL_CreateTexture(Renderer, 
+        viewTexture = SDL_CreateTexture(Renderer,
                                       SDL_PIXELFORMAT_RGBA8888,
                                       SDL_TEXTUREACCESS_STREAMING,
                                       viewW, viewH);
@@ -1084,41 +981,41 @@ void md_initView(int w, int h)
             crtEffect = NULL;
         }
         Game g = getGame(currentGameIndex);
-        crtEffect = CreateCRTEffect(viewW, viewH, 0, 0, 6*wscale, 3*wscale, 10, 
+        crtEffect = CreateCRTEffect(viewW, viewH, 0, 0, 6*wscale, 3*wscale, 10,
             g.options.isDarkColor ? 40 : 128 , g.options.isDarkColor ? 40 : 128 , g.options.isDarkColor ? 40 : 128, g.options.isDarkColor ? 55 : 45);
     }
     resetCharacterSprite();
 }
 
 
-void md_consoleLog(char* msg) 
-{ 
-    logMessage(msg); 
+void md_consoleLog(char* msg)
+{
+    logMessage(msg);
 }
 
 static void update() {
     CInput_Update(GameInput);
     if(GameInput->Buttons.ButQuit)
         quit = 1;
-    
+
     bool mouseUsed = getGame(currentGameIndex).usesMouse;
-    setButtonState(!mouseUsed && (GameInput->Buttons.ButLeft || GameInput->Buttons.ButDpadLeft), 
+    setButtonState(!mouseUsed && (GameInput->Buttons.ButLeft || GameInput->Buttons.ButDpadLeft),
         !mouseUsed && (GameInput->Buttons.ButRight || GameInput->Buttons.ButDpadRight),
         !mouseUsed && (GameInput->Buttons.ButUp || GameInput->Buttons.ButDpadUp),
-        !mouseUsed && (GameInput->Buttons.ButDown || GameInput->Buttons.ButDpadDown), 
+        !mouseUsed && (GameInput->Buttons.ButDown || GameInput->Buttons.ButDpadDown),
         GameInput->Buttons.ButB, GameInput->Buttons.ButA);
-    
+
     if (mouseUsed)
     {
         if(GameInput->Buttons.ButRight)
             mouseX += WINDOW_WIDTH /100;
-        
+
         if(GameInput->Buttons.ButLeft)
             mouseX -= WINDOW_WIDTH /100;
-            
+
         if(GameInput->Buttons.ButUp)
             mouseY -= WINDOW_HEIGHT /100;
-    
+
         if(GameInput->Buttons.ButDown)
             mouseY += WINDOW_HEIGHT /100;
 
@@ -1143,19 +1040,19 @@ static void update() {
         else
             quit = 1;
     }
- 
+
     if ((!GameInput->PrevButtons.ButLB) && (GameInput->Buttons.ButLB))
     {
         audioVolume -= 0.05f;
         if(audioVolume < 0.0f)
-            audioVolume = 0.0f;    
+            audioVolume = 0.0f;
     }
 
     if ((!GameInput->PrevButtons.ButRB) && (GameInput->Buttons.ButRB))
     {
         audioVolume += 0.05f;
         if(audioVolume > 1.0f)
-            audioVolume = 1.0f;     
+            audioVolume = 1.0f;
     }
 
     if ((!GameInput->PrevButtons.ButY) && (GameInput->Buttons.ButY))
@@ -1184,7 +1081,7 @@ static void update() {
                     resetCharacterSprite();
                 }
             }
-            else 
+            else
             {
                 if(overlay == 1)
                 {
@@ -1197,7 +1094,7 @@ static void update() {
                     {
                         overlay = 2;
                         glowEnabled = false;
-                        resetCharacterSprite();                    
+                        resetCharacterSprite();
                     }
                 }
                 else
@@ -1207,20 +1104,7 @@ static void update() {
                         glowEnabled = true;
                         resetCharacterSprite();
                         overlay = 0;
-                        
-                    }
-                }
-            }
-            //remember
-            Game g = getGame(currentGameIndex);
-            if((strlen(g.title) > 0) && (g.update != NULL))
-            {         
-                for (int i = 0; i < gameCount; i++)
-                {
-                    if (strcmp(g.title, gameOverLays[i].title) == 0 )
-                    {
-                        gameOverLays[i].overlay = overlay;
-                        gameOverLays[i].glowEnabled = glowEnabled;
+
                     }
                 }
             }
@@ -1245,7 +1129,7 @@ static void update() {
 
         // Always ensure minimum 1 pixel
         float pixelSize = ceilf(1.0f * wscale);
-        
+
          // Draw vertical lines
         for (float x = 0; x < viewW; x += pixelSize * 2.0f)
         {
@@ -1284,7 +1168,7 @@ static void update() {
     }
     // Update texture from surface
     if (view && viewTexture) {
-        
+
         Uint32 currentCrtTime = SDL_GetTicks();
         float deltaTime = (currentCrtTime - lastCrtTime) / 1000.0f;
         lastCrtTime = currentCrtTime;
@@ -1294,36 +1178,17 @@ static void update() {
             RenderCRTEffect(view, crtEffect);
         }
         SDL_UpdateTexture(viewTexture, NULL, view->pixels, view->pitch);
-        
+
         // Clear renderer
         SDL_SetRenderDrawColor(Renderer, clearColorR, clearColorG, clearColorB, 255);
         SDL_RenderClear(Renderer);
-        
+
         // Draw the view texture
         SDL_Rect dst = {offsetX, offsetY, realViewW, realViewH};
         SDL_RenderCopy(Renderer, viewTexture, NULL, &dst);
 
         // Present the renderer
         SDL_RenderPresent(Renderer);
-    }
-    if ((!GameInput->PrevButtons.ButStart) && (GameInput->Buttons.ButStart))
-    {
-        if(!isInMenu)
-        {
-            Game g = getGame(currentGameIndex);
-            if((strlen(g.title) > 0) && (g.update != NULL))
-            {         
-                for (int i = 0; i < gameCount; i++)
-                {
-                    if (strcmp(g.title, gameOverLays[i].title) == 0 )
-                    {
-                        gameOverLays[i].isDarkColor = !gameOverLays[i].isDarkColor;
-                        restartGame(currentGameIndex);
-                        break;
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -1364,13 +1229,13 @@ void SDL_Cleanup()
     while(SDL_PollEvent(&Event))
         SDL_Delay(1);
     SDL_Delay(250);
-    
+
     SDL_Quit();
 }
 
 int main(int argc, char** argv)
 {
-//attach to potential console when using -mwindows so we can get output in a cmd / msys prompt 
+//attach to potential console when using -mwindows so we can get output in a cmd / msys prompt
 //but see no console window when running from explorer start menu or so
 #if defined _WIN32 || defined __CYGWIN__
     if(AttachConsole((DWORD)-1))
@@ -1404,7 +1269,7 @@ int main(int argc, char** argv)
                 }
             }
         }
-                    
+
         if(strcmp(argv[i], "-cgl") == 0)
         {
             initGame();
@@ -1413,7 +1278,7 @@ int main(int argc, char** argv)
                 Game g = getGame(i);
                 if(strlen(g.title) > 0 && (g.update != NULL))
                 {
-                        
+
                     char filename[512];
                     sprintf(filename, "./%s.cgl", g.title);
                     FILE *f = fopen(filename, "w");
@@ -1427,7 +1292,7 @@ int main(int argc, char** argv)
             return 0;
         }
 
-        if((strcmp(argv[i], "-?") == 0) || (strcmp(argv[i], "--?") == 0) || 
+        if((strcmp(argv[i], "-?") == 0) || (strcmp(argv[i], "--?") == 0) ||
             (strcmp(argv[i], "/?") == 0) || (strcmp(argv[i], "-help") == 0) || (strcmp(argv[i], "--help") == 0))
         {
             printHelp(argv[0]);
@@ -1436,27 +1301,27 @@ int main(int argc, char** argv)
 
         if(strcmp(argv[i], "-f") == 0)
             fullScreen = true;
-        
+
         if(strcmp(argv[i], "-a") == 0)
             useHWSurface = true;
-        
+
         if(strcmp(argv[i], "-fps") == 0)
             showfps = true;
-        
+
         if(strcmp(argv[i], "-ns") == 0)
-			noAudioInit = true;
+            noAudioInit = true;
 
         if(strcmp(argv[i], "-nd") == 0)
-			nodelay = true;
+            nodelay = true;
 
         if(strcmp(argv[i], "-w") == 0)
             if(i+1 < argc)
                 WINDOW_WIDTH = atoi(argv[i+1]);
-        
+
         if(strcmp(argv[i], "-h") == 0)
             if(i+1 < argc)
                 WINDOW_HEIGHT = atoi(argv[i+1]);
-        
+
         if(strcmp(argv[i], "-g") == 0)
             if(i+1 < argc)
             {
@@ -1466,7 +1331,7 @@ int main(int argc, char** argv)
 
         if(strcmp(argv[i], "-nsd") == 0)
             scaledDrawing = false;
-        
+
         if(strcmp(argv[i], "-list") == 0)
         {
             initGame();
@@ -1482,7 +1347,7 @@ int main(int argc, char** argv)
             }
             return 0;
         }
-        
+
         if(strcmp(argv[i], "-ms") == 0)
             makescreenshots = true;
     }
@@ -1558,7 +1423,7 @@ int main(int argc, char** argv)
                         logMessage("Failed to open audio: %s\n", SDL_GetError());
                     else
                     {
-                        
+
                         const char* audioName = SDL_GetCurrentAudioDriver();
                         if(audioName)
                             logMessage("Using Audio Driver:%s\n", audioName);
@@ -1583,29 +1448,29 @@ int main(int argc, char** argv)
                     }
                 }
                 loadHighScores();
-                loadGameOverlays();
-	            if (startgame[0] != 0)
-	            {
-	                logMessage("Start Game: %s\n", startgame);
-	                bool found = false;
-	                for (int i = 0; i < gameCount; i++)
-	                {
-	                    if(strcmp(startgame, getGame(i).title) == 0)
-	                    {
-	                        found = true;
-	                        restartGame(i);
-	                        break;
-	                    }
-	                }
-	                if(!found)
-	                    memset(startgame, 0, 100);
-	            }
-                SDL_GetMouseState(&prevRealMouseX, &prevRealMouseY);                
+                if (startgame[0] != 0)
+                {
+                    logMessage("Start Game: %s\n", startgame);
+                    bool found = false;
+                    for (int i = 0; i < gameCount; i++)
+                    {
+                        if(strcmp(startgame, getGame(i).title) == 0)
+                        {
+                            found = true;
+                            restartGame(i);
+                            break;
+                        }
+                    }
+                    if(!found)
+                        memset(startgame, 0, 100);
+                }
+                SDL_GetMouseState(&prevRealMouseX, &prevRealMouseY);
                 GameInput = CInput_Create();
                 int skip = 10;
                 while(quit == 0)
                 {
                     frameticks = SDL_GetPerformanceCounter();
+
                     update();
                     if(quit == 0)
                     {
@@ -1614,7 +1479,7 @@ int main(int argc, char** argv)
                         frameTime = FramePerf / (double)SDL_GetPerformanceFrequency() * 1000.0f;
                         double delay = 1000.0f / FPS - frameTime;
                         if (!nodelay && (delay > 0.0f))
-                            SDL_Delay((Uint32)(delay)); 
+                            SDL_Delay((Uint32)(delay));
                     }
                     if (showfps)
                     {
@@ -1643,14 +1508,13 @@ int main(int argc, char** argv)
                             }
                         }
                     }
-                }           
+                }
                 CInput_Destroy(GameInput);
                 resetCharacterSprite();
                 if(crtEffect)
                     DestroyCRTEffect(crtEffect);
                 SDL_DestroyRenderer(Renderer);
                 saveHighScores();
-                saveGameOverlays();
                 if(soundOn)
                 {
                     SDL_PauseAudio(1);
@@ -1663,7 +1527,7 @@ int main(int argc, char** argv)
                 logMessage("Failed to created Renderer!\n");
             }
             SDL_DestroyWindow(SdlWindow);
-        }		
+        }
         else
         {
             logMessage("Failed to create SDL_Window %dx%d\n",WINDOW_WIDTH, WINDOW_HEIGHT);
