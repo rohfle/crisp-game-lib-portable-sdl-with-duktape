@@ -267,45 +267,6 @@ static void DestroyCRTEffect(CRTEffect* effect)
     SDL_free(effect);
 }
 
-static void loadHighScores()
-{
-    char fileName[FILENAME_MAX];
-    sprintf(fileName,"%s/.cglpscore.dat", SDL_getenv("HOME") == NULL ? ".": SDL_getenv("HOME"));
-    FILE *fp;
-    fp = fopen(fileName, "rb");
-    if(fp)
-    {
-        int i = 0;
-        while (!feof(fp) && (i < gameCount))
-        {
-            fread(hiScores[i].title, sizeof(char), 100, fp);
-            fread(&hiScores[i].hiScore, sizeof(int), 1, fp);
-            i++;
-        }
-        fclose(fp);
-    }
-}
-
-static void saveHighScores()
-{
-    char fileName[FILENAME_MAX];
-    sprintf(fileName,"%s/.cglpscore.dat", SDL_getenv("HOME") == NULL ? ".": SDL_getenv("HOME"));
-    FILE *fp;
-    fp = fopen(fileName, "wb");
-    if(fp)
-    {
-        for (int i = 0; i < gameCount; i++)
-        {
-            if(strlen(hiScores[i].title) > 0)
-            {
-                fwrite(hiScores[i].title, sizeof(char), 100, fp);
-                fwrite(&hiScores[i].hiScore, sizeof(int), 1, fp);
-            }
-        }
-        fclose(fp);
-    }
-}
-
 static GlowDistanceTable* createDistanceTable(int glowSize) {
     GlowDistanceTable* table = (GlowDistanceTable*)SDL_malloc(sizeof(GlowDistanceTable));
     if (!table) return NULL;
@@ -993,7 +954,7 @@ void md_consoleLog(char* msg)
     logMessage(msg);
 }
 
-static void update() {
+static void updateSDL() {
     CInput_Update(GameInput);
     if(GameInput->Buttons.ButQuit)
         quit = 1;
@@ -1447,7 +1408,6 @@ int main(int argc, char** argv)
                             logMessage("Failed to open audio\n");
                     }
                 }
-                loadHighScores();
                 if (startgame[0] != 0)
                 {
                     logMessage("Start Game: %s\n", startgame);
@@ -1470,8 +1430,7 @@ int main(int argc, char** argv)
                 while(quit == 0)
                 {
                     frameticks = SDL_GetPerformanceCounter();
-
-                    update();
+                    updateSDL();
                     if(quit == 0)
                     {
                         Uint64 frameEndTicks = SDL_GetPerformanceCounter();
@@ -1514,7 +1473,6 @@ int main(int argc, char** argv)
                 if(crtEffect)
                     DestroyCRTEffect(crtEffect);
                 SDL_DestroyRenderer(Renderer);
-                saveHighScores();
                 if(soundOn)
                 {
                     SDL_PauseAudio(1);

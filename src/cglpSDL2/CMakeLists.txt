@@ -21,10 +21,10 @@ endif()
 file(GLOB SRC CONFIGURE_DEPENDS
         "${PROJECT_SOURCE_DIR}/*.c"
         "${PROJECT_SOURCE_DIR}/*.h"
-        "${PROJECT_SOURCE_DIR}/../games/*.c"
-        "${PROJECT_SOURCE_DIR}/../games/*.h"
         "${PROJECT_SOURCE_DIR}/../lib/*.c"
         "${PROJECT_SOURCE_DIR}/../lib/*.h"
+        "${PROJECT_SOURCE_DIR}/../lib/loaders/games_filesystem.c"
+        "${PROJECT_SOURCE_DIR}/../lib/loaders/hiscores_filesystem.c"
 )
 
 if (WIN32)
@@ -34,9 +34,8 @@ endif()
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE ${SRC} )
 
-target_include_directories(${PROJECT_NAME} PRIVATE 
+target_include_directories(${PROJECT_NAME} PRIVATE
     "${PROJECT_SOURCE_DIR}"
-    "${PROJECT_SOURCE_DIR}/../games"
     "${PROJECT_SOURCE_DIR}/../lib"
 )
 
@@ -45,11 +44,11 @@ if(TARGET SDL2::SDL2main)
 endif()
 
 if(USE_VENDORED_SDL)
-    target_link_libraries(${PROJECT_NAME} PRIVATE 
+    target_link_libraries(${PROJECT_NAME} PRIVATE
         SDL2::SDL2-static
     )
 else()
-    target_link_libraries(${PROJECT_NAME} PRIVATE 
+    target_link_libraries(${PROJECT_NAME} PRIVATE
         SDL2::SDL2
     )
 endif()

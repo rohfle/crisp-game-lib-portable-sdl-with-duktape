@@ -1,25 +1,24 @@
 DEBUG = 0
-SRC_DIR = ./src/cglpSDL2  
+SRC_DIR = ./src/cglpSDL2
 LIB_DIR = ./src/lib
-GME_DIR = ./src/games
 STATIC_LIBS = 0
 
-DEFINES ?= 
+DEFINES ?=
 
 OBJ_DIR = obj
 EXE=cglpsdl2
 
-SRC=$(wildcard *.c $(foreach fd, $(SRC_DIR), $(fd)/*.c)) 
+SRC=$(wildcard *.c $(foreach fd, $(SRC_DIR), $(fd)/*.c))
 OBJS=$(addprefix $(OBJ_DIR)/, $(SRC:.c=.o))
 
-LIB_DIR_SRC=$(wildcard *.c $(foreach fd, $(LIB_DIR), $(fd)/*.c)) 
+LIB_DIR_SRC=$(wildcard *.c $(foreach fd, $(LIB_DIR), $(fd)/*.c))
 OBJS+=$(addprefix $(OBJ_DIR)/, $(LIB_DIR_SRC:.c=.o))
 
-GME_DIR_SRC=$(wildcard *.c $(foreach fd, $(GME_DIR), $(fd)/*.c)) 
-OBJS+=$(addprefix $(OBJ_DIR)/, $(GME_DIR_SRC:.c=.o))
+LOADERS_DIR_SRC=$(LIB_DIR)/loaders/games_filesystem.c $(LIB_DIR)/loaders/hiscores_filesystem.c
+OBJS+=$(addprefix $(OBJ_DIR)/, $(LOADERS_DIR_SRC:.c=.o))
 
 
-INCS = -I$(SRC_DIR) -I$(LIB_DIR) -I$(GME_DIR)
+INCS = -I$(SRC_DIR) -I$(LIB_DIR)
 SDL_CONFIG = sdl2-config
 CC = gcc -g
 CFLAGS ?= -Wall -Wextra `$(SDL_CONFIG) --cflags`
@@ -29,7 +28,7 @@ ifeq ($(STATIC_LIBS),1)
 LDFLAGS += -static
 LDLIBS += `$(SDL_CONFIG) --static-libs`
 else
-LDLIBS += `$(SDL_CONFIG) --libs` 
+LDLIBS += `$(SDL_CONFIG) --libs`
 endif
 LDLIBS += -lm
 
