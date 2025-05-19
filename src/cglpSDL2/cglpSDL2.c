@@ -941,9 +941,8 @@ void md_initView(int w, int h)
             DestroyCRTEffect(crtEffect);
             crtEffect = NULL;
         }
-        Game g = getGame(currentGameIndex);
         crtEffect = CreateCRTEffect(viewW, viewH, 0, 0, 6*wscale, 3*wscale, 10,
-            g.options.isDarkColor ? 40 : 128 , g.options.isDarkColor ? 40 : 128 , g.options.isDarkColor ? 40 : 128, g.options.isDarkColor ? 55 : 45);
+            options.isDarkColor ? 40 : 128 , options.isDarkColor ? 40 : 128 , options.isDarkColor ? 40 : 128, options.isDarkColor ? 55 : 45);
     }
     resetCharacterSprite();
 }
@@ -959,7 +958,7 @@ static void updateSDL() {
     if(GameInput->Buttons.ButQuit)
         quit = 1;
 
-    bool mouseUsed = getGame(currentGameIndex).usesMouse;
+    bool mouseUsed = usesMouse;
     setButtonState(!mouseUsed && (GameInput->Buttons.ButLeft || GameInput->Buttons.ButDpadLeft),
         !mouseUsed && (GameInput->Buttons.ButRight || GameInput->Buttons.ButDpadRight),
         !mouseUsed && (GameInput->Buttons.ButUp || GameInput->Buttons.ButDpadUp),
