@@ -17,6 +17,8 @@ class Panel_QemuRGB : public lgfx::Panel_LCD
 public:
     Panel_QemuRGB();
 
+    void setDimensions(int width, int height);
+
     bool init(bool use_reset) override;
     void beginTransaction(void) override;
     void endTransaction(void) override;
@@ -75,5 +77,9 @@ public:
         _panel_instance.setRotation(0);
         setPanel(&_panel_instance);
         _board = lgfx::board_t::board_FrameBuffer;
+    }
+
+    void setDimensions(int width, int height) {
+        _panel_instance.setDimensions(width, height);
     }
 };

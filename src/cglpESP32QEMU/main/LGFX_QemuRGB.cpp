@@ -31,8 +31,19 @@ void Panel_QemuRGB::beginTransaction(void) {}
 void Panel_QemuRGB::endTransaction(void) {}
 void Panel_QemuRGB::display(uint_fast16_t x, uint_fast16_t y, uint_fast16_t w, uint_fast16_t h) {}
 
+void Panel_QemuRGB::setDimensions(int width, int height) {
+    _width = width;
+    _height = height;
+    init(true);
+}
+
 bool Panel_QemuRGB::init(bool use_reset)
 {
+    if (_panel != NULL) {
+        esp_lcd_panel_del(_panel);
+        _panel = NULL;
+    }
+
     esp_lcd_rgb_qemu_bpp_t qemu_bpp;
     switch (_write_depth) {
         case rgb565_2Byte:
