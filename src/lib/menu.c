@@ -2,15 +2,13 @@
 
 #include "cglp.h"
 
-
 #define MAX_GAMES_PER_PAGE 15
 #define KEY_REPEAT_DURATION 30
 int gameCount = 0;
-static Game games[MAX_GAME_COUNT];
 static int gameIndex = 1;
 static int keyRepeatTicks = 0;
 
-static void update() {
+void menuUpdate() {
   color = BLUE;
   text("[A]      [B]", 3, 3);
   color = BLACK;
@@ -26,11 +24,6 @@ static void update() {
        (input.b.isPressed || input.down.isPressed))) {
     gameIndex++;
     gameIndex = wrap(gameIndex, 1, gameCount);
-    while(games[gameIndex].update == NULL)
-    {
-      gameIndex++;
-      gameIndex = wrap(gameIndex, 1, gameCount);
-    }
     if (keyRepeatTicks > KEY_REPEAT_DURATION) {
       keyRepeatTicks = KEY_REPEAT_DURATION / 3 * 2;
     }
@@ -39,16 +32,10 @@ static void update() {
       (keyRepeatTicks > KEY_REPEAT_DURATION && input.up.isPressed)) {
     gameIndex--;
     gameIndex = wrap(gameIndex, 1, gameCount);
-    while(games[gameIndex].update == NULL)
-    {
-      gameIndex--;
-      gameIndex = wrap(gameIndex, 1, gameCount);
-    }
     if (keyRepeatTicks > KEY_REPEAT_DURATION) {
       keyRepeatTicks = KEY_REPEAT_DURATION / 3 * 2;
     }
   }
-
 
   // Calculate current page and starting index
   int currentGames = 0;
@@ -66,6 +53,7 @@ static void update() {
 
   // Draw the games for current page
   currentGames = gamesPerPage;
+  color = BLACK;
   for (int i = 0; i < currentGames; i++) {
       int gamePos = startIndex + i;
       if (gamePos >= gameCount) break;
@@ -76,50 +64,25 @@ static void update() {
       if (gamePos == gameIndex) {
           color = BLUE;
           text(">", 3, y + 3);
+          color = BLACK;
       }
 
-      // Offset normal games vs category
-      // i assume games without update function are category
-      int offset = 0;
-      color = BLACK;
-      if(games[gamePos].update == NULL)
-      {
-        color = RED;
-        offset = -9;
-      }
       // Draw game title
-      text(games[gamePos].title, 9 + offset, y + 3);
+      // TODO: handle unterminated string
+      char* name = md_gameListGetItemName(gamePos);
+      if (name < 0) {
+        color = RED;
+        text("ERROR", 9, y + 3);
+        color = BLACK;
+      } else {
+        text(name, 9, y + 3);
+      }
   }
 
   if (input.a.isJustPressed) {
-    if(games[gameIndex].update != NULL) {
-      restartGame(gameIndex);
-    }
+    restartGame(gameIndex);
   }
 }
 
-void addGame(char *title, char *description, char* filename,
-             char (*characters)[CHARACTER_WIDTH][CHARACTER_HEIGHT + 1],
-             int charactersCount, Options options, int usesMouse, void (*update)(void)) {
-  if (gameCount >= MAX_GAME_COUNT) {
-    return;
-  }
-  Game *g = &games[gameCount];
-  g->title = title;
-  g->description = description;
-  g->characters = characters;
-  g->charactersCount = charactersCount;
-  g->options = options;
-  g->usesMouse = usesMouse;
-  g->update = update;
-  g->filename = filename;
-  gameCount++;
-}
-
-Game getGame(int index) { return games[index]; }
-
-void addMenu() {
-  Options o = {
-      .viewSizeX = 100, .viewSizeY = 100, .soundSeed = 0, .isDarkColor = false, .isShowingScore = false};
-  addGame("", "", NULL, NULL, 0, o, false, update);
-}
+Game dummy = {.title = "test", .description = "test"};
+Game getGame(int index) { return dummy; }

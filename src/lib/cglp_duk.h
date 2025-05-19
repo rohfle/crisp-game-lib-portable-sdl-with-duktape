@@ -3,8 +3,7 @@
 
 #include "cglp.h"
 
-int addJSGameFromFile(char*);
-int loadJSGameFromFile(char*);
+int loadJSGameFromFile(int);
 int initJS();
 void cleanupJS();
 bool isJSGame(Game game);

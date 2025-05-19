@@ -1,6 +1,7 @@
 #include "cglp.h"
 #include "duktape.h"
 #include "cglp_duk.h"
+#include "cglp_duk_utils.h"
 #include "cglp_duk_native.h"
 #include "cglp_duk_native_vector.h"
 #include "duk_print_alert.h"
@@ -42,14 +43,14 @@ char* getTitleFromFilename(char* filename) {
     return title;
 }
 
-int addJSGameFromFile(char* filename) {
-    char buf[MAX_FILE_SIZE];
-    int len = md_readJSGame(filename, buf, sizeof(buf));
+int loadJSGameFromFile(int gameIndex) {
+    char* bufptr;
+    int len = md_gameListReadItemContents(gameIndex, &bufptr);
     if (len < 0) {
         return -1;
     }
     initJS();
-    duk_push_lstring(ctx, (const char *) buf, (duk_size_t) len);
+    duk_push_lstring(ctx, (const char *) bufptr, (duk_size_t) len);
     if (duk_peval(ctx) != 0) {
         /* Use duk_safe_to_string() to convert error into string.  This API
          * call is guaranteed not to throw an error during the coercion.
@@ -60,53 +61,40 @@ int addJSGameFromFile(char* filename) {
     }
     // use strstr to search for "input.pos" in javascript source code
     // to figure out if the game usesMouse
-    bool usesMouse = strstr(buf, "input.pos") != NULL;
+    usesMouse = strstr(bufptr, "input.pos") != NULL;
     // get title
-    char* title = getTitleFromFilename(filename);
+    title = md_gameListGetItemName(gameIndex);
+    if (description != NULL) {
+        free(description);
+    }
     duk_get_global_string(ctx, "description");
-    char* description = duk_get_string_persistent(ctx, -1);
+    description = duk_get_string_persistent(ctx, -1);
     duk_pop(ctx);
-    char (*characters)[CHARACTER_WIDTH][CHARACTER_HEIGHT + 1];
+    // char (*characters)[CHARACTER_WIDTH][CHARACTER_HEIGHT + 1];
+    if (characters != NULL) {
+        free(characters);
+    }
     duk_get_global_string(ctx, "characters");
-    int charactersLength = duk_get_characters_persistent(ctx, -1, &characters);
+    charactersCount = duk_get_characters_persistent(ctx, -1, &characters);
     duk_pop(ctx);
-    Options* options;
+    // Options* options;
     duk_get_global_string(ctx, "options");
-    duk_get_options_persistent(ctx, -1, &options);
+    duk_get_options(ctx, -1, &options);
     duk_pop(ctx);
-    addGame(title, description, filename, characters, charactersLength, *options, usesMouse, updateJSFrame);
-    cleanupJS();
-    return 0;
-}
-
-int loadJSGameFromFile(char* filename) {
-    initJS();
-    char buf[MAX_FILE_SIZE];
-    int len = md_readJSGame(filename, buf, sizeof(buf));
-    if (len < 0) {
-        return -1;
-    }
-    initJS();
-    duk_push_lstring(ctx, (const char *) buf, (duk_size_t) len);
-    if (duk_peval(ctx) != 0) {
-        /* Use duk_safe_to_string() to convert error into string.  This API
-         * call is guaranteed not to throw an error during the coercion.
-         */
-        printf("Script error: %s\n", duk_safe_to_string(ctx, -1));
-        cleanupJS();
-        return -1;
-    }
+    update = updateJSFrame;
     return 0;
 }
 
 int initJS() {
     cleanupJS();
-    ctx = duk_create_heap_default();
-    // ctx = duk_create_heap(my_alloc,
-    //     my_realloc,
-    //     my_free,
-    //     my_udata,
-    //     my_fatal);
+    ctx = duk_create_heap(
+        duk_cglp_alloc_function,
+        duk_cglp_realloc_function,
+        duk_cglp_free_function,
+        NULL,
+        duk_cglp_fatal_handler
+    );
+
     if (ctx == NULL) {
         consoleLog("Error while initializing js\n");
         return -1;
@@ -130,10 +118,6 @@ void cleanupJS() {
         duk_destroy_heap(ctx);
         ctx = NULL;
     }
-}
-
-bool isJSGame(Game game) {
-    return game.update == updateJSFrame;
 }
 
 void updateJSFrame() {

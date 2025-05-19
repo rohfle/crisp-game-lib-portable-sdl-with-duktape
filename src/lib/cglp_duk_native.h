@@ -19,7 +19,7 @@ int duk_push_vector(duk_context* ctx, Vector vector);
 int duk_push_collision(duk_context *ctx, Collision collision);
 char* duk_get_string_persistent(duk_context *ctx, duk_idx_t idx);
 int duk_get_characters_persistent(duk_context* ctx, duk_idx_t idx, char(**characters)[CHARACTER_WIDTH][CHARACTER_HEIGHT + 1]);
-void duk_get_options_persistent(duk_context* ctx, duk_idx_t idx, Options** options);
+void duk_get_options(duk_context* ctx, duk_idx_t idx, Options* options);
 
 // native functions called from javascript
 duk_ret_t native_rnd(duk_context* ctx);

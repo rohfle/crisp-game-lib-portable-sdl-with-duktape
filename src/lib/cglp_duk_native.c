@@ -323,6 +323,12 @@ duk_ret_t native_addScore(duk_context* ctx) {
 duk_ret_t native_addWithCharCode(duk_context* ctx) {
     // DEBUG_TRACE(native_addWithCharCode);
     const char* charCode = duk_get_string(ctx, 0);
+    if (charCode == NULL || charCode[0] == '\0') {
+        // From JS version:
+        // String.fromCharCode(char.charCodeAt(0) + 1) returns '\0'
+        duk_push_string(ctx, "");
+        return 1;
+    }
     const duk_int_t offset = duk_get_int(ctx, 1);
 
     char addWithCharCodeResult[2] = {0};
@@ -457,6 +463,7 @@ duk_ret_t native_line(duk_context* ctx) {
     DEBUG_TRACE(native_line);
     // function line(x1, y1, x2, y2, thickness) {}
     duk_float_t x1, y1, x2, y2;
+    x1 = y1 = x2 = y2 = 0;
     Collision collision;
     bool valid = parse_line(ctx, &x1, &y1, &x2, &y2, &thickness);
     if (valid) {
@@ -666,8 +673,8 @@ bool parse_line(duk_context* ctx, duk_float_t* x1, duk_float_t* y1, duk_float_t*
         } else {
             // 4: x1.x, x1.y, y1, x2, thickness=y2
             valid = parse_vectorlike(ctx, 0, x1, y1);
-            *x1 = duk_get_number(ctx, 1);
-            *y1 = duk_get_number(ctx, 2);
+            *x2 = duk_get_number(ctx, 1);
+            *y2 = duk_get_number(ctx, 2);
             *thickness = duk_get_number(ctx, 3);
         }
     } else if (n == 3) {
@@ -1019,9 +1026,8 @@ int duk_get_characters_persistent(duk_context* ctx, duk_idx_t idx, char(**charac
     return charactersLength;
 }
 
-void duk_get_options_persistent(duk_context* ctx, duk_idx_t idx, Options** options) {
-    DEBUG_TRACE(duk_get_options_persistent);
-    Options* o = calloc(1, sizeof(Options));
+void duk_get_options(duk_context* ctx, duk_idx_t idx, Options* o) {
+    DEBUG_TRACE(duk_get_options);
     o->viewSizeX = 100;
     o->viewSizeY = 100;
     o->soundSeed = 1;
@@ -1064,8 +1070,6 @@ void duk_get_options_persistent(duk_context* ctx, duk_idx_t idx, Options** optio
         o->isDarkColor = strcmp(duk_get_string(ctx, -1), "dark") == 0;
         duk_pop(ctx);
     }
-
-    *options = o;
 }
 
 

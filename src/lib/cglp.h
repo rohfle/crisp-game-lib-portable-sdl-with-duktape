@@ -136,8 +136,6 @@ typedef struct {
 /// \endcond
 
 EXTERNC int currentGameIndex;
-EXTERNC void (*onResetGame)(Game *game);
-EXTERNC GameHiScore hiScores[MAX_GAME_COUNT];
 EXTERNC int ticks;
 EXTERNC float score;
 EXTERNC float difficulty;
@@ -184,8 +182,13 @@ EXTERNC void initRandomSeed();
 EXTERNC void initScoreBoards();
 EXTERNC ScoreBoard scoreBoards[MAX_SCORE_BOARD_COUNT];
 EXTERNC int viewSizeX, viewSizeY;
+EXTERNC bool usesMouse;
+EXTERNC char *title;
+EXTERNC char *description;
 EXTERNC char (*characters)[CHARACTER_HEIGHT][CHARACTER_WIDTH + 1];
 EXTERNC int charactersCount;
+EXTERNC Options options;
+EXTERNC void (*update)(void);
 
 typedef struct {
   unsigned char r;

@@ -25,8 +25,25 @@ void md_initView(int w, int h) {}
 void md_consoleLog(char *msg) {
     printf("md_consoleLog: %s\n", msg);
 }
-int md_readJSGame(char* filename, char* buf, int buflen) {return 0;}
-void md_loadJSGames() {}
+int md_gameListLoad() {
+    return 0;
+}
+const char* md_gameListGetItemName(int idx) {
+    return "test";
+}
+int md_gameListReadItemContents(int idx, char** returned) {
+    *returned = "";
+    return 0;
+}
+int md_hiScoreInit() {
+    return 0;
+}
+int md_hiScoreLoad(char* name) {
+    return 0;
+}
+int md_hiScoreSave(char* name, int score) {
+    return 1;
+}
 
 #define SUCCESS 1
 #define FAIL -1
@@ -705,7 +722,7 @@ int test_native_addWithCharCode(char* function_name) {
     duk_call(ctx, 2);
     const char* returned = duk_get_string(ctx, -1);
     duk_pop(ctx);
-    if (strlen(returned) <= 0 || returned[0] != 'c') {
+    if (returned == NULL || strlen(returned) < 1 || returned[0] != 'c') {
         TESTLOG("addWithCharCode(\"a\", 2) does not return \"c\"");
         goto cleanup;
     }
@@ -716,7 +733,8 @@ int test_native_addWithCharCode(char* function_name) {
     duk_call(ctx, 2);
     returned = duk_get_string(ctx, -1);
     duk_pop(ctx);
-    if (strlen(returned) <= 0 || returned[0] != 'f') {
+    // printf("returned %p %s %c\n", returned, returned, returned[0]);
+    if (returned == NULL || strlen(returned) < 1 || returned[0] != 'f') {
         TESTLOG("addWithCharCode(\"b\", 4) does not return \"f\"");
         goto cleanup;
     }

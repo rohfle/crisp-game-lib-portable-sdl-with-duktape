@@ -22,7 +22,10 @@ EXTERNC void md_stopTone();
 EXTERNC float md_getAudioTime();
 EXTERNC void md_initView(int w, int h);
 EXTERNC void md_consoleLog(char *msg);
-EXTERNC int md_readJSGame(char* filename, char* buf, int buflen);
-EXTERNC void md_loadJSGames();
-
+EXTERNC int md_gameListLoad();
+EXTERNC const char* md_gameListGetItemName(int idx);
+EXTERNC int md_gameListReadItemContents(int idx, char** returned);
+EXTERNC int md_hiScoreInit();
+EXTERNC int md_hiScoreLoad(char* name);
+EXTERNC int md_hiScoreSave(char* name, int score);
 #endif

@@ -13,6 +13,7 @@ extern PlaydateAPI *pd;
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -67,22 +68,19 @@ bool isInGameOver;
 //! current game index (readonly)
 int currentGameIndex = 0;
 
-GameHiScore hiScores[MAX_GAME_COUNT];
-
-
 static int state;
 static bool hasTitle;
 static bool isShowingScore;
 static bool isBgmEnabled;
 int viewSizeX, viewSizeY;
 
-static char *title;
-static char *description;
+bool usesMouse;
+char *title;
+char *description;
 char (*characters)[CHARACTER_HEIGHT][CHARACTER_WIDTH + 1];
 int charactersCount;
-static Options options;
-static void (*update)(void);
-void (*onResetGame)(Game *game) = NULL;
+Options options;
+void (*update)(void);
 
 // Collision
 /// \cond
@@ -623,12 +621,10 @@ static int scoreBoardsIndex;
 static void initScore(char* gameTitle)
 {
   score = prevScore = hiScore = 0;
-  for (int i = 0; i < gameCount; i++)
-    if(strcmp(hiScores[i].title, gameTitle) == 0)
-    {
-      hiScore = hiScores[i].hiScore;
-      break;
-    }
+  int result = md_hiScoreLoad(gameTitle);
+  if (result >= 0) {
+    hiScore = result;
+  }
 }
 
 void initScoreBoards() {
@@ -1011,32 +1007,10 @@ static void initGameOver() {
     stopReplay();
   } else {
     isPlayingBgm = false;
-    prevScore = (int)score;
-    char* title = getGame(currentGameIndex).title;
-    int foundIndex = -1;
-    int freeIndex = -1;
-    for (int i = 0; i < gameCount; i++)
-    {
-      if ((strlen(hiScores[i].title) == 0) && (hiScores[i].hiScore == 0) && (freeIndex = -1))
-      {
-        freeIndex = i;
-      }
-
-      if (strcmp(hiScores[i].title, title) == 0)
-      {
-          foundIndex = i;
-          break;
-      }
-    }
-
-    int index = foundIndex > -1 ? foundIndex : freeIndex;
-    if(index > -1)
-    {
-      if(prevScore > hiScores[index].hiScore)
-      {
-        strncpy(hiScores[index].title, title, strlen(title));
-        hiScores[index].hiScore = prevScore;
-      }
+    if (prevScore < score) {
+      prevScore = (int)score;
+      char* name = md_gameListGetItemName(currentGameIndex);
+      int saved = md_hiScoreSave(name, prevScore);
     }
   }
 
@@ -1069,23 +1043,31 @@ void gameOver() { initGameOver(); }
 
 static void resetGame(int gameIndex) {
   currentGameIndex = gameIndex;
-  Game game = getGame(gameIndex);
   cleanupJS();
-  if (onResetGame) {
-    onResetGame(&game);
+
+  if (isInMenu) {
+    title = "";
+    if (description != NULL) {
+      free(description);
+    }
+    description = calloc(1, 1);
+    if (characters != NULL) {
+        free(characters);
+        characters = NULL;
+    }
+    charactersCount = 0;
+    Options o = {
+          .viewSizeX = 100, .viewSizeY = 100, .soundSeed = 0, .isDarkColor = false, .isShowingScore = false};
+    options = o;
+    // TODO: load games list each time (but dont reset last game index??)
+    update = menuUpdate;
+    usesMouse = false;
+  } else {
+    loadJSGameFromFile(gameIndex);
   }
-  title = game.title;
-  description = game.description;
-  characters = game.characters;
-  charactersCount = game.charactersCount;
-  options = game.options;
   viewSizeX = options.viewSizeX;
   viewSizeY = options.viewSizeY;
-  update = game.update;
-  // load new game from storage if javascript
-  if (isJSGame(game)) {
-    loadJSGameFromFile(game.filename);
-  }
+
   md_initView(viewSizeX, viewSizeY);
   // TODO: should this be in the update loop?
   isShowingScore = options.isShowingScore;
@@ -1132,24 +1114,20 @@ void restartGame(int gameIndex) {
   resetGame(gameIndex);
 }
 
-// Initialize all games highscore table which can be used for saving
-void initHiScores()
-{
-  for (int i = 0; i < MAX_GAME_COUNT; i++)
-  {
-    memset(hiScores[i].title, 0, 100*sizeof(char));
-    hiScores[i].hiScore = 0;
-  }
-}
-
 //! Initialize all games and go to the game selection menu screen.
 //! This function must be called from the machine dependent setup step.
 EMSCRIPTEN_KEEPALIVE
 void initGame() {
-  initHiScores();
+  md_hiScoreInit();
   initInput();
-  addMenu();
-  addGames();
+  int count = md_gameListLoad();
+  if (count < 0) {
+    md_consoleLog("error loading game list");
+    gameCount = 0;
+  } else {
+    printf("loaded %i games\n", count);
+    gameCount = count;
+  }
   if (gameCount == 2) {
     restartGame(1);
   } else {
